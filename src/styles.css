@@ -1,0 +1,13 @@
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.bar {
+  display: inline-block;
+  background-color: aliceblue;
+  position: absolute;
+  bottom: 0;
+}

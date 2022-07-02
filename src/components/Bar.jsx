@@ -1,14 +1,14 @@
 import React, { Component } from 'react'
+import '../styles.css'
 
-export default class Bar extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {}
+export default function Bar(props) {
+  const style = {
+    width: `${props.width}vw`,
+    height: `${props.height}vh`,
+    left: `${props.left}vw`
   }
 
-  render() {
-    return (
-      <div>{this.props.num}</div>
-    )
-  }
+  return (
+    <div className="bar" style={style}>{props.num}</div>
+  )
 }
