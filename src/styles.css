@@ -1,13 +1,37 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
+  --text-container-height: 12vh;
   margin: 0;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  height: 100vh;
 }
 
 .bar {
   display: inline-block;
   background-color: aliceblue;
   position: absolute;
-  bottom: 0;
+  bottom: var(--text-container-height);
+  bottom: 12vh;
+}
+
+.text-container {
+  position: absolute;
+  bottom: 0%;
+  width: 100%;
+  height: var(--text-container-height);
+  background-color: rgb(31, 42, 61);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  color: white;
+  place-items: center;
+}
+
+.dropdown {
+
+}
+
+.sort-button {
+  
 }

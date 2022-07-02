@@ -25,9 +25,9 @@ export default class Bars extends Component {
   render() {
     const width = 100 / this.state.arr.length
     return (
-      <>
+      <div>
         {this.state.arr.map((num, idx) => <Bar key={idx} width={width} height={num} left={width * idx} num={num} />)}
-      </>
+      </div>
     )
   }
 }
