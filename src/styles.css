@@ -13,7 +13,6 @@ body {
   background-color: aliceblue;
   position: absolute;
   bottom: var(--text-container-height);
-  bottom: 12vh;
 }
 
 .text-container {

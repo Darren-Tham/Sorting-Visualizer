@@ -1,37 +1,18 @@
-import React, { Component } from 'react'
+import React from 'react'
 import Bar from './Bar'
 
-export default class Bars extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      arr: []
-    }
-  }
-
-  componentDidMount() {
-    this.generateArr()
-  }
-
-  generateArr() {
-    const arr = []
-    for (let i = 0; i < 10; i++) {
-      const randomNum = randomBetween(5, 100)
-      arr.push(randomNum)
-    }
-    this.setState({ arr })
-  }
-
-  render() {
-    const width = 100 / this.state.arr.length
-    return (
-      <div>
-        {this.state.arr.map((num, idx) => <Bar key={idx} width={width} height={num} left={width * idx} num={num} />)}
-      </div>
-    )
-  }
+export default function Bars(props) {
+  const barWidth = 100 / props.arr.length
+  const heightPercentage = getHeight() / 100
+  return (
+    <div>
+      {props.arr.map((num, idx) => <Bar key={idx} width={barWidth} height={heightPercentage * num} left={barWidth * idx} num={num} />)}
+    </div>
+  )
 }
 
-function randomBetween(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min
+function getHeight() {
+  const body = document.querySelector('body')
+  const textContainerHeight = getComputedStyle(body).getPropertyValue('--text-container-height')
+  return 100 - parseInt(textContainerHeight)
 }

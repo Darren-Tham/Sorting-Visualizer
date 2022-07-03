@@ -1,11 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import Bars from './components/bar-component/Bars'
-import TextContainer from './components/text-component/TextContainer'
-import './styles.css'
+import SortingVisualizer from './components/SortingVisualizer'
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
-root.render(<div>
-  <Bars />
-  <TextContainer />
-</div>)
+root.render(<SortingVisualizer></SortingVisualizer>)
