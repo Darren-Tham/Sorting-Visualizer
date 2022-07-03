@@ -4,13 +4,14 @@
 
 body {
   --text-container-height: 12vh;
+  --text-container-color: rgb(31, 42, 61);
   margin: 0;
   height: 100vh;
 }
 
 .bar {
   display: inline-block;
-  background-color: aliceblue;
+  background-color: rgb(199, 228, 255);
   position: absolute;
   bottom: var(--text-container-height);
 }
@@ -20,11 +21,28 @@ body {
   bottom: 0%;
   width: 100%;
   height: var(--text-container-height);
-  background-color: rgb(31, 42, 61);
+  background-color: var(--text-container-color);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   color: white;
   place-items: center;
+}
+
+input,
+button,
+select {
+  font-size: 1.5em;
+  text-align: center;
+  color: white;
+  background-color: var(--text-container-color);
+  appearance: none;
+  border: none;
+  user-select: none;
+}
+
+input:focus,
+select:focus {
+  outline: none
 }
 
 .dropdown {
