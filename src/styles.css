@@ -5,6 +5,7 @@
 body {
   --text-container-height: 12vh;
   --text-container-color: rgb(31, 42, 61);
+  --spacing: 0.25vw;
   margin: 0;
   height: 100vh;
 }
@@ -37,7 +38,6 @@ select {
   background-color: var(--text-container-color);
   appearance: none;
   border: none;
-  user-select: none;
 }
 
 input:focus,
