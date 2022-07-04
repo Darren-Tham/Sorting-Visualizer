@@ -2,10 +2,9 @@ import React from 'react'
 import Bar from './Bar'
 
 export default function Bars(props) {
-  const body = document.body
-  const spacing = getSpacing(body)
+  const spacing = getSpacing()
   const barWidth = getBarWidth(props.arr.length, spacing)
-  const heightPercentage = getMaxBarHeight(body) / 100
+  const heightPercentage = getMaxBarHeight() / 100
 
   return (
     <div>
@@ -18,12 +17,12 @@ function getBarWidth(length, spacing) {
   return (100 - spacing * (length  - 1)) / length
 }
 
-function getSpacing(body) {
-  const spacing = getComputedStyle(body).getPropertyValue('--spacing')
+function getSpacing() {
+  const spacing = getComputedStyle(document.body).getPropertyValue('--spacing')
   return parseFloat(spacing)
 }
 
-function getMaxBarHeight(body) {
-  const textContainerHeight = getComputedStyle(body).getPropertyValue('--text-container-height')
+function getMaxBarHeight() {
+  const textContainerHeight = getComputedStyle(document.body).getPropertyValue('--text-container-height')
   return 100 - parseInt(textContainerHeight)
 }

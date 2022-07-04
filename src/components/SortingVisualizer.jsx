@@ -2,11 +2,13 @@ import React, { Component } from 'react'
 import Bars from './bar-component/Bars'
 import TextContainer from './text-component/TextContainer'
 
+const DEFAULT_VALUE = 10
+
 export default class SortingVisualizer extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      value: 10,
+      value: DEFAULT_VALUE,
       arr: []
     }
   }
@@ -32,7 +34,7 @@ export default class SortingVisualizer extends Component {
     return (
       <div>
         <Bars arr={this.state.arr} />
-        <TextContainer handleChange={this.handleChange} />
+        <TextContainer handleChange={this.handleChange} defaultValue={this.state.value} />
       </div>
     )
   }

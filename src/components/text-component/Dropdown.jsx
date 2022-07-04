@@ -5,7 +5,6 @@ export default function Dropdown() {
     <select>
       <option>Choose a sorting algorithm!</option>
       <option>Bubble Sort</option>
-      <option>Wack</option>
     </select>
   )
 }

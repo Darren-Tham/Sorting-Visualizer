@@ -7,7 +7,7 @@ export default function TextContainer(props) {
   return (
     <div className="text-container">
       <Dropdown />
-      <SampleTextBox handleChange={props.handleChange} />
+      <SampleTextBox handleChange={props.handleChange} defaultValue={props.defaultValue} />
       <SortButton />
     </div>
   )

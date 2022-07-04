@@ -42,13 +42,5 @@ select {
 
 input:focus,
 select:focus {
-  outline: none
-}
-
-.dropdown {
-
-}
-
-.sort-button {
-  
+  outline: none;
 }
