@@ -6,9 +6,9 @@ import SortButton from './SortButton'
 export default function TextContainer(props) {
   return (
     <div className="text-container">
-      <Dropdown />
-      <SampleTextBox handleChange={props.handleChange} defaultValue={props.defaultValue} />
-      <SortButton />
+      <Dropdown handleAlgorithmChange={props.handleAlgorithmChange} />
+      <SampleTextBox defaultValue={props.defaultValue} handleSampleChange={props.handleSampleChange} />
+      <SortButton handleClick={props.handleClick} />
     </div>
   )
 }

@@ -8,6 +8,7 @@ export default class SortingVisualizer extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      algorithm: '',
       value: DEFAULT_VALUE,
       arr: []
     }
@@ -24,17 +25,31 @@ export default class SortingVisualizer extends Component {
     this.setState({ arr })
   }
 
-  handleChange = evt => {
+  handleSampleChange = evt => {
     const value = evt.target.value
     this.generateArr(value)
     this.setState({ value })
+  }
+
+  handleClick = () => {
+    switch (this.state.algorithm) {
+      case 'Bubble Sort':
+        break
+      default:
+        alert("Please choose a sorting algorithm!")
+    }
+  }
+
+  handleAlgorithmChange = evt => {
+    const algorithm = evt.target.value
+    this.setState({ algorithm })
   }
 
   render() {
     return (
       <div>
         <Bars arr={this.state.arr} />
-        <TextContainer handleChange={this.handleChange} defaultValue={this.state.value} />
+        <TextContainer defaultValue={this.state.value} handleSampleChange={this.handleSampleChange} handleClick={this.handleClick} handleAlgorithmChange={this.handleAlgorithmChange} />
       </div>
     )
   }

@@ -1,8 +1,8 @@
 import React from 'react'
 
-export default function Dropdown() {
+export default function Dropdown(props) {
   return (
-    <select>
+    <select onChange={props.handleAlgorithmChange}>
       <option>Choose a sorting algorithm!</option>
       <option>Bubble Sort</option>
     </select>
