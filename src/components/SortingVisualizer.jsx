@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import Bars from './bar-component/Bars'
 import TextContainer from './text-component/TextContainer'
+import BubbleSort from './sorting-algorithms/BubbleSort'
 
 const DEFAULT_VALUE = 10
 
@@ -16,7 +17,7 @@ export default class SortingVisualizer extends Component {
 
   componentDidMount = () => this.generateArr(this.state.value)
 
-  generateArr = (value) => {
+  generateArr = value => {
     const arr = []
     for (let i = 0; i < value; i++) {
       const randomNum = randomBetween(5, 100)
@@ -34,6 +35,7 @@ export default class SortingVisualizer extends Component {
   handleClick = () => {
     switch (this.state.algorithm) {
       case 'Bubble Sort':
+        BubbleSort()
         break
       default:
         alert("Please choose a sorting algorithm!")
