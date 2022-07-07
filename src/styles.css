@@ -12,7 +12,6 @@ body {
 
 .bar {
   display: inline-block;
-  background-color: rgb(199, 228, 255);
   position: absolute;
   bottom: var(--text-container-height);
 }

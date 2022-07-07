@@ -5,7 +5,8 @@ export default function Bar(props) {
   const style = {
     width: `${props.width}vw`,
     height: `${props.height}vh`,
-    left: `${props.left}vw`
+    left: `${props.left}vw`,
+    backgroundColor: props.color
   }
 
   return (
