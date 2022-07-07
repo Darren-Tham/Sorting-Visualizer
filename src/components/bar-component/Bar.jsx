@@ -10,6 +10,6 @@ export default function Bar(props) {
   }
 
   return (
-    <div className="bar" style={style}>{props.num}</div>
+    <div className="bar" style={style}></div>
   )
 }

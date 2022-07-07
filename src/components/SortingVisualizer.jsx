@@ -5,6 +5,7 @@ import TextContainer from './text-component/TextContainer'
 const DEFAULT_VALUE = 10
 const BLUE = '#c7e4ff'
 const RED = '#ff9494'
+const TIME = 500
 
 export default class SortingVisualizer extends Component {
   constructor(props) {
@@ -65,21 +66,24 @@ export default class SortingVisualizer extends Component {
     let count = 0
 
     for (let i = n - 1; i > 0; i--) {
-      for (let j = 0; j < i; j++, count++) {
+      for (let j = 0; j < i; j++) {
+        const time = TIME * count++ / n
         setTimeout(() => {
           let currNum = bars[j].props.num
           let nextNum = bars[j + 1].props.num
           this.swapBars(bars, currNum, nextNum, j, j + 1, true)
-          
+
+          const swapTime = TIME / n / 3
           setTimeout(() => {
             if (currNum > nextNum) {
               [currNum, nextNum] = [nextNum, currNum]
               this.swapBars(bars, currNum, nextNum, j, j + 1, true)
             } 
-          }, 100)
+          }, swapTime)
 
-          setTimeout(() => this.swapBars(bars, currNum, nextNum, j, j + 1, false), 200)
-        }, 300 * count)
+          const resetTime = swapTime * 2
+          setTimeout(() => this.swapBars(bars, currNum, nextNum, j, j + 1, false), resetTime)
+        }, time)
       }
     }
   }
