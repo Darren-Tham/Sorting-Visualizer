@@ -35,7 +35,8 @@ export default class SortingVisualizer extends Component {
   handleClick = () => {
     switch (this.state.algorithm) {
       case 'Bubble Sort':
-        BubbleSort()
+        const arr = BubbleSort(this.state.arr)
+        this.setState({ arr })
         break
       default:
         alert("Please choose a sorting algorithm!")

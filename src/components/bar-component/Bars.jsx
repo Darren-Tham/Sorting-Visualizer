@@ -5,6 +5,7 @@ export default function Bars(props) {
   const spacing = getSpacing()
   const barWidth = getBarWidth(props.arr.length, spacing)
   const heightPercentage = getMaxBarHeight() / 100
+  console.log(props.arr)
 
   return (
     <div>
