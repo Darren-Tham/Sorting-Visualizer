@@ -5,6 +5,7 @@ export default function Dropdown(props) {
     <select onChange={props.handleAlgorithmChange}>
       <option>Choose a sorting algorithm!</option>
       <option>Bubble Sort</option>
+      <option>Insertion Sort</option>
     </select>
   )
 }

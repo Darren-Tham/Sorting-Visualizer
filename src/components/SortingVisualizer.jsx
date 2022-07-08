@@ -55,9 +55,20 @@ export default class SortingVisualizer extends Component {
       case 'Bubble Sort':
         this.bubbleSort()
         break
+      case 'Insertion Sort':
+        this.insertionSort()
+        break
       default:
         alert("Please choose a sorting algorithm!")
     }
+  }
+
+  updateBars(bars, currNum, nextNum, currIdx, nextIdx, selected) {
+    const currBar = this.createBar(currNum, currIdx, selected)
+    const nextBar = this.createBar(nextNum, nextIdx, selected)
+    bars[currIdx] = currBar
+    bars[nextIdx] = nextBar
+    this.setState({ bars })
   }
 
   bubbleSort = () => {
@@ -66,34 +77,42 @@ export default class SortingVisualizer extends Component {
     let count = 0
 
     for (let i = n - 1; i > 0; i--) {
-      for (let j = 0; j < i; j++) {
-        const time = TIME * count++ / n
+      for (let j = 0; j < i; j++, count++) {
+        const totalTime = TIME * count / n
+        const swapTime = TIME / n / 3
+        const resetTime = swapTime * 2
+
         setTimeout(() => {
           let currNum = bars[j].props.num
           let nextNum = bars[j + 1].props.num
-          this.swapBars(bars, currNum, nextNum, j, j + 1, true)
+          this.updateBars(bars, currNum, nextNum, j, j + 1, true)
 
-          const swapTime = TIME / n / 3
           setTimeout(() => {
             if (currNum > nextNum) {
               [currNum, nextNum] = [nextNum, currNum]
-              this.swapBars(bars, currNum, nextNum, j, j + 1, true)
-            } 
+              this.updateBars(bars, currNum, nextNum, j, j + 1, true)
+            }
           }, swapTime)
 
-          const resetTime = swapTime * 2
-          setTimeout(() => this.swapBars(bars, currNum, nextNum, j, j + 1, false), resetTime)
-        }, time)
+          setTimeout(() => this.updateBars(bars, currNum, nextNum, j, j + 1, false), resetTime)
+        }, totalTime)
       }
     }
   }
 
-  swapBars(bars, currNum, nextNum, currIdx, nextIdx, selected) {
-    const currBar = this.createBar(currNum, currIdx, selected)
-    const nextBar = this.createBar(nextNum, nextIdx, selected)
-    bars[currIdx] = currBar
-    bars[nextIdx] = nextBar    
-    this.setState({ bars })
+  insertionSort = () => {
+    const bars = this.state.bars.slice()
+    const n = bars.length
+    let count = 0
+
+    for (let i = 1; i < n; i++, count++) {      
+      const currNum = bars[i].props.num
+      const prevNum = bars[i - 1].props.num
+      setTimeout(() => this.updateBars(bars, currNum, prevNum, i, i - 1, true), 100 * count)
+      for (let j = i; j > 0 && arr[j - 1] > arr[j]; j--, count++) {
+        
+      }
+    }
   }
 
   render() {
