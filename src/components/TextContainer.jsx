@@ -7,6 +7,7 @@ export default function TextContainer(props) {
         <option>Choose a sorting algorithm!</option>
         <option>Bubble Sort</option>
         <option>Insertion Sort</option>
+        <option>Selection Sort</option>
       </select>
       <input type="text" min="1" defaultValue={props.defaultValue} onChange={props.handleSampleChange} />
       <button onClick={props.handleResetClick}>Reset</button>

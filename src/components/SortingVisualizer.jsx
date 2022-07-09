@@ -50,6 +50,12 @@ export default class SortingVisualizer extends Component {
     this.setState({ bars })
   }
 
+  updateBar = (bars, currNum, currIdx, color, value) => {
+    const currBar = this.createBar(currNum, currIdx, color, value)
+    bars[currIdx] = currBar
+    this.setState({ bars })
+  }
+
   finalizeBars = () => {
     const bars = this.state.bars.slice()
     let time = 0
@@ -86,6 +92,9 @@ export default class SortingVisualizer extends Component {
       case 'Insertion Sort':
         this.insertionSort()
         break
+      case 'Selection Sort':
+        this.selectionSort()
+        break
       default:
         alert("Please choose a sorting algorithm!")
         this.isSorting = false
@@ -109,8 +118,7 @@ export default class SortingVisualizer extends Component {
 
     for (let i = n - 1; i > 0; i--) {
       for (let j = 0; j < i; j++) {
-        let currNum
-        let nextNum
+        let currNum, nextNum
 
         // Highlights bars
         setTimeout(() => {
@@ -152,8 +160,7 @@ export default class SortingVisualizer extends Component {
         nums[j] = nums[j - 1]
         nums[j - 1] = temp
 
-        let currNum
-        let prevNum
+        let currNum, prevNum
 
         // Highlight bars
         setTimeout(() => {
@@ -175,6 +182,88 @@ export default class SortingVisualizer extends Component {
         // Change color back
         setTimeout(() => this.updateBars(bars, currNum, prevNum, j, j - 1, BLUE, value), time)
         time = this.incrementTime(time, n)
+      }
+    }
+
+    setTimeout(() => this.finalizeBars(), time)
+  }
+
+  selectionSort = () => {
+    const bars = this.state.bars.slice()
+    const nums = bars.map(bar => bar.props.num)
+    const n = bars.length
+    const value = this.state.value
+    let time = 0
+
+    for (let i = 0; i < n - 1; i++) {
+      let minIdx = i, barMinIdx, minNum, currNum, nextNum
+
+      // Set the first bar to purple
+      setTimeout(() => {
+        barMinIdx = i
+        currNum = minNum = bars[i].props.num
+        this.updateBar(bars, minNum, i, PURPLE, value)
+      }, time)
+      time = this.incrementTime(time, n)
+
+      for (let j = i + 1; j < n; j++) {
+        // Used for timing
+        if (nums[j] < nums[minIdx]) {
+          minIdx = j
+        }
+
+        // Set the next bar to red
+        setTimeout(() => {
+          nextNum = bars[j].props.num
+          this.updateBar(bars, nextNum, j, RED, value)
+        }, time)
+        time = this.incrementTime(time, n)
+
+        // If there is new min, change new min to purple
+        // Else, change back to blue
+        setTimeout(() => {
+          if (nextNum < minNum) {
+            if (minNum === currNum) {
+              this.updateBar(bars, minNum, barMinIdx, RED, value)
+            } else {
+              this.updateBar(bars, minNum, barMinIdx, BLUE, value)
+            }
+            barMinIdx = j
+            minNum = nextNum
+            this.updateBar(bars, minNum, barMinIdx, PURPLE, value)
+          } else {
+            this.updateBar(bars, nextNum, j, BLUE, value)
+          }
+        }, time)
+        time = this.incrementTime(time, n)
+      }
+
+      // If sorted, stay blue
+      // Else, swap bars
+      setTimeout(() => {
+        if (barMinIdx === i) {
+          this.updateBar(bars, minNum, barMinIdx, BLUE, value)
+        } else {
+          let swapTime = this.incrementTime(0, n)
+          this.updateBars(bars, currNum, minNum, i, barMinIdx, RED, value)
+
+          setTimeout(() => {
+            [currNum, minNum] = [minNum, currNum]
+            this.updateBars(bars, currNum, minNum, i, barMinIdx, RED, value)
+          }, swapTime)
+          swapTime = this.incrementTime(swapTime, n)
+
+          setTimeout(() => this.updateBars(bars, currNum, minNum, i, barMinIdx, BLUE, value), swapTime)
+        }
+      }, time)
+      time = this.incrementTime(time, n)
+
+      // Used for timing
+      if (minIdx !== i) {
+        const temp = nums[minIdx]
+        nums[minIdx] = nums[i]
+        nums[i] = temp
+        time += this.incrementTime(0, n) * 2
       }
     }
 
