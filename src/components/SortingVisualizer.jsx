@@ -7,7 +7,7 @@ const BLUE = '#c7e4ff'
 const RED = '#ff9494'
 const GREEN = '#b3ffc3'
 const PURPLE = '#e3c7ff'
-const TIME = 100
+const TIME = 1000
 
 export default class SortingVisualizer extends Component {
   constructor(props) {
@@ -66,7 +66,7 @@ export default class SortingVisualizer extends Component {
         bars[idx] = this.createBar(bar.props.num, idx, GREEN)
         this.setState({ bars })
       }, time)
-      time = this.incrementTime(time, n)
+      time += this.incrementTime(n)
     })
 
     setTimeout(() => this.isSorting = false, time)
@@ -92,6 +92,9 @@ export default class SortingVisualizer extends Component {
       case 'Insertion Sort':
         this.insertionSort()
         break
+      case 'Merge Sort':
+        this.mergeSort()
+        break
       case 'Selection Sort':
         this.selectionSort()
         break
@@ -108,7 +111,7 @@ export default class SortingVisualizer extends Component {
 
   // Sorting Functions
 
-  incrementTime = (time, n) => time + TIME / n
+  incrementTime = (n) => TIME / n
 
   bubbleSort = () => {
     const bars = this.state.bars.slice()
@@ -126,7 +129,7 @@ export default class SortingVisualizer extends Component {
           nextNum = bars[j + 1].props.num
           this.updateBars(bars, currNum, nextNum, j, j + 1, RED, value)
         }, time)
-        time = this.incrementTime(time, n)
+        time += this.incrementTime(n)
 
         // Switch if not sorted
         setTimeout(() => {
@@ -135,11 +138,11 @@ export default class SortingVisualizer extends Component {
             this.updateBars(bars, currNum, nextNum, j, j + 1, RED, value)
           }
         }, time)
-        time = this.incrementTime(time, n)
+        time += this.incrementTime(n)
 
         // Change color back
         setTimeout(() => this.updateBars(bars, currNum, nextNum, j, j + 1, BLUE, value), time)
-        time = this.incrementTime(time, n)
+        time += this.incrementTime(n)
       }
     }
 
@@ -168,7 +171,7 @@ export default class SortingVisualizer extends Component {
           prevNum = bars[j - 1].props.num
           this.updateBars(bars, currNum, prevNum, j, j - 1, RED, value)
         }, time)
-        time = this.incrementTime(time, n)
+        time += this.incrementTime(n)
 
         // Switch if not sorted
         setTimeout(() => {
@@ -177,11 +180,11 @@ export default class SortingVisualizer extends Component {
             this.updateBars(bars, currNum, prevNum, j, j - 1, RED, value)
           }
         }, time)
-        time = this.incrementTime(time, n)
+        time += this.incrementTime(n)
 
         // Change color back
         setTimeout(() => this.updateBars(bars, currNum, prevNum, j, j - 1, BLUE, value), time)
-        time = this.incrementTime(time, n)
+        time += this.incrementTime(n)
       }
     }
 
@@ -204,7 +207,7 @@ export default class SortingVisualizer extends Component {
         currNum = minNum = bars[i].props.num
         this.updateBar(bars, minNum, i, PURPLE, value)
       }, time)
-      time = this.incrementTime(time, n)
+      time += this.incrementTime(n)
 
       for (let j = i + 1; j < n; j++) {
         // Used for timing
@@ -217,7 +220,7 @@ export default class SortingVisualizer extends Component {
           nextNum = bars[j].props.num
           this.updateBar(bars, nextNum, j, RED, value)
         }, time)
-        time = this.incrementTime(time, n)
+        time += this.incrementTime(n)
 
         // If there is new min, change new min to purple
         // Else, change back to blue
@@ -235,7 +238,7 @@ export default class SortingVisualizer extends Component {
             this.updateBar(bars, nextNum, j, BLUE, value)
           }
         }, time)
-        time = this.incrementTime(time, n)
+        time += this.incrementTime(n)
       }
 
       // If sorted, stay blue
@@ -244,29 +247,117 @@ export default class SortingVisualizer extends Component {
         if (barMinIdx === i) {
           this.updateBar(bars, minNum, barMinIdx, BLUE, value)
         } else {
-          let swapTime = this.incrementTime(0, n)
+          let swapTime = this.incrementTime(n)
           this.updateBars(bars, currNum, minNum, i, barMinIdx, RED, value)
 
           setTimeout(() => {
             [currNum, minNum] = [minNum, currNum]
             this.updateBars(bars, currNum, minNum, i, barMinIdx, RED, value)
           }, swapTime)
-          swapTime = this.incrementTime(swapTime, n)
+          swapTime += this.incrementTime(n)
 
           setTimeout(() => this.updateBars(bars, currNum, minNum, i, barMinIdx, BLUE, value), swapTime)
         }
       }, time)
-      time = this.incrementTime(time, n)
+      time += this.incrementTime(n)
 
       // Used for timing
       if (minIdx !== i) {
         const temp = nums[minIdx]
         nums[minIdx] = nums[i]
         nums[i] = temp
-        time += this.incrementTime(0, n) * 2
+        time += this.incrementTime(n) * 2
       }
     }
 
+    setTimeout(() => this.finalizeBars(), time)
+  }
+
+  mergeSort = () => {
+    const bars = this.state.bars.slice()
+    const nums = bars.map(bar => bar.props.num)
+    const indices = nums.map((_, idx) => idx)
+    const n = bars.length
+    const value = this.state.value
+    let time = 0
+
+    const helper = (A, I) => {
+      if (A.length === 1) {
+        return A
+      }
+
+      const mid = Math.floor(A.length / 2)
+      const left = helper(A.slice(0, mid), I.slice(0, mid))
+      const right = helper(A.slice(mid), I.slice(mid))
+      
+      mergeVisualizer(left.slice(), right.slice(), I)
+      return merge(left, right)
+    }
+
+    const merge = (left, right) => {
+      const sortedArr = []
+
+      while (left.length !== 0 && right.length !== 0) {
+        if (left[0] > right[0]) {
+          sortedArr.push(right.shift())
+        } else {
+          sortedArr.push(left.shift())
+        }
+      }
+
+      while (left.length !== 0) {
+        sortedArr.push(left.shift())
+      }
+
+      while (right.length !== 0) {
+        sortedArr.push(right.shift())
+      }
+
+      return sortedArr
+    }
+
+    const mergeVisualizer = (left, right, currIndices) => {
+      setTimeout(() => {
+        const unsortedArr = left.concat(right)
+        const sortedArr = []
+
+        while (left.length !== 0 && right.length !== 0) {
+          if (left[0] > right[0]) {
+            sortedArr.push(right.shift())
+          } else {
+            sortedArr.push(left.shift())
+          }
+        }
+
+        while (left.length !== 0) {
+          sortedArr.push(left.shift())
+        }
+
+        while (right.length !== 0) {
+          sortedArr.push(right.shift())
+        }
+
+        let swapTime = this.incrementTime(n)
+
+        setTimeout(() => {
+          for (let i = 0; i < currIndices.length; i++) {
+            this.updateBar(bars, unsortedArr[i], currIndices[i], RED, value)
+          }
+        }, swapTime)
+        swapTime += this.incrementTime(n)
+
+        for (let i = 0; i < currIndices.length; i++) {
+          setTimeout(() => this.updateBar(bars, sortedArr[i], currIndices[i], RED, value), swapTime)
+          swapTime += this.incrementTime(n)
+
+          setTimeout(() => this.updateBar(bars, sortedArr[i], currIndices[i], BLUE, value), swapTime)
+          swapTime += this.incrementTime(n)
+        }
+      }, time)
+      time += (2 + 2 * currIndices.length) * this.incrementTime(n)
+    }
+
+    helper(nums, indices)
     setTimeout(() => this.finalizeBars(), time)
   }
 
