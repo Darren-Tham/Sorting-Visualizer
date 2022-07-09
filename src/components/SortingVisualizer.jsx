@@ -11,13 +11,12 @@ export default class SortingVisualizer extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      algorithm: '',
       value: DEFAULT_VALUE,
       bars: []
     }
   }
 
-  componentDidMount = () => this.generateBars(this.state.value)
+  componentDidMount = () => this.generateBars()
 
   createBar = (num, idx, selected, length = this.state.value) => {
     const spacing = getSpacing()
@@ -29,7 +28,7 @@ export default class SortingVisualizer extends Component {
     return <Bar key={idx} width={width} height={height} left={left} color={color} num={num} />
   }
 
-  generateBars = value => {
+  generateBars = (value = this.state.value) => {
     const bars = []
     for (let i = 0; i < value; i++) {
       const num = randomBetween(5, 100)
@@ -45,14 +44,9 @@ export default class SortingVisualizer extends Component {
     this.setState({ value })
   }
 
-  handleAlgorithmChange = evt => {
-    const algorithm = evt.target.value
-    this.generateBars(this.state.value)
-    this.setState({ algorithm })
-  }
-
-  handleClick = () => {
-    switch (this.state.algorithm) {
+  handleSortClick = () => {
+    const dropdown = document.getElementById('dropdown')
+    switch (dropdown.value) {
       case 'Bubble Sort':
         this.bubbleSort()
         break
@@ -63,6 +57,8 @@ export default class SortingVisualizer extends Component {
         alert("Please choose a sorting algorithm!")
     }
   }
+
+  handleResetClick = () => this.generateBars()
 
   updateBars(bars, currNum, nextNum, currIdx, nextIdx, selected) {
     const currBar = this.createBar(currNum, currIdx, selected)
@@ -124,7 +120,7 @@ export default class SortingVisualizer extends Component {
         nums[j - 1] = temp
 
         let currNum
-        let prevNum        
+        let prevNum
 
         // Highlight bars
         setTimeout(() => {
@@ -139,7 +135,7 @@ export default class SortingVisualizer extends Component {
           if (prevNum > currNum) {
             [currNum, prevNum] = [prevNum, currNum]
             this.updateBars(bars, currNum, prevNum, j, j - 1, true)
-          } 
+          }
         }, time)
         time = this.incrementTime(time, n)
 
@@ -156,7 +152,7 @@ export default class SortingVisualizer extends Component {
         <div>
           {this.state.bars.map(bar => bar)}
         </div>
-        <TextContainer defaultValue={this.state.value} handleSampleChange={this.handleSampleChange} handleClick={this.handleClick} handleAlgorithmChange={this.handleAlgorithmChange} />
+        <TextContainer defaultValue={this.state.value} handleSampleChange={this.handleSampleChange} handleSortClick={this.handleSortClick} handleResetClick={this.handleResetClick} />
       </>
     )
   }
