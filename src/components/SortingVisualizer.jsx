@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
-import Bar from './bar-component/Bar'
-import TextContainer from './text-component/TextContainer'
+import Bar from './Bar'
+import TextContainer from './TextContainer'
 
 const DEFAULT_VALUE = 10
 const BLUE = '#c7e4ff'
 const RED = '#ff9494'
 const GREEN = '#b3ffc3'
+const PURPLE = '#e3c7ff'
 const TIME = 100
 
 export default class SortingVisualizer extends Component {
@@ -133,7 +134,7 @@ export default class SortingVisualizer extends Component {
         time = this.incrementTime(time, n)
       }
     }
-    
+
     setTimeout(() => this.finalizeBars(time, n), time)
   }
 
