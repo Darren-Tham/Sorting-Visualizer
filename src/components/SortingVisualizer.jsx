@@ -5,7 +5,7 @@ import TextContainer from './text-component/TextContainer'
 const DEFAULT_VALUE = 10
 const BLUE = '#c7e4ff'
 const RED = '#ff9494'
-const TIME = 10000
+const TIME = 100
 
 export default class SortingVisualizer extends Component {
   constructor(props) {
@@ -47,6 +47,7 @@ export default class SortingVisualizer extends Component {
 
   handleAlgorithmChange = evt => {
     const algorithm = evt.target.value
+    this.generateBars(this.state.value)
     this.setState({ algorithm })
   }
 
@@ -111,26 +112,39 @@ export default class SortingVisualizer extends Component {
 
   insertionSort = () => {
     const bars = this.state.bars.slice()
+    const nums = bars.map(bar => bar.props.num)
     const n = bars.length
     let time = 0
 
-
     for (let i = 1; i < n; i++) {
-      let currNum
-      let prevNum
+      for (let j = i; j > 0 && nums[j - 1] > nums[j]; j--) {
+        // Helps stop insertion early
+        const temp = nums[j]
+        nums[j] = nums[j - 1]
+        nums[j - 1] = temp
 
-      setTimeout(() => {
-        currNum = bars[i].props.num
-        prevNum = bars[i - 1].props.num
-        this.updateBars(bars, currNum, prevNum, i, i - 1, true)
-      }, time)
-      time = this.incrementTime(time, n)
+        let currNum
+        let prevNum        
 
-      for (let j = i; j > 0 && bars[j - 1].props.num > bars[j].props.num; j--) {
+        // Highlight bars
         setTimeout(() => {
-          [currNum, prevNum] = [prevNum, currNum]
+          currNum = bars[j].props.num
+          prevNum = bars[j - 1].props.num
           this.updateBars(bars, currNum, prevNum, j, j - 1, true)
         }, time)
+        time = this.incrementTime(time, n)
+
+        // Switch if not sorted
+        setTimeout(() => {
+          if (prevNum > currNum) {
+            [currNum, prevNum] = [prevNum, currNum]
+            this.updateBars(bars, currNum, prevNum, j, j - 1, true)
+          } 
+        }, time)
+        time = this.incrementTime(time, n)
+
+        // Change color back
+        setTimeout(() => this.updateBars(bars, currNum, prevNum, j, j - 1, false), time)
         time = this.incrementTime(time, n)
       }
     }
