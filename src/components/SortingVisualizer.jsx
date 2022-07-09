@@ -5,6 +5,7 @@ import TextContainer from './text-component/TextContainer'
 const DEFAULT_VALUE = 10
 const BLUE = '#c7e4ff'
 const RED = '#ff9494'
+const GREEN = '#b3ffc3'
 const TIME = 100
 
 export default class SortingVisualizer extends Component {
@@ -14,37 +15,68 @@ export default class SortingVisualizer extends Component {
       value: DEFAULT_VALUE,
       bars: []
     }
+    this.isSorting = false
   }
 
-  componentDidMount = () => this.generateBars()
+  componentDidMount = () => this.generateBars(DEFAULT_VALUE)
 
-  createBar = (num, idx, selected, length = this.state.value) => {
+  // Bar Functions
+
+  createBar = (num, idx, color, value) => {
     const spacing = getSpacing()
-    const width = getBarWidth(length, spacing)
+    const width = getBarWidth(value, spacing)
     const heightPercentage = getMaxBarHeight() / 100
     const height = heightPercentage * num
     const left = (width + spacing) * idx
-    const color = selected ? RED : BLUE
     return <Bar key={idx} width={width} height={height} left={left} color={color} num={num} />
   }
 
-  generateBars = (value = this.state.value) => {
+  generateBars = value => {
     const bars = []
     for (let i = 0; i < value; i++) {
       const num = randomBetween(5, 100)
-      const bar = this.createBar(num, i, false, value)
+      const bar = this.createBar(num, i, BLUE, value)
       bars.push(bar)
     }
     this.setState({ bars })
   }
 
+  updateBars = (bars, currNum, nextNum, currIdx, nextIdx, color, value) => {
+    const currBar = this.createBar(currNum, currIdx, color, value)
+    const nextBar = this.createBar(nextNum, nextIdx, color, value)
+    bars[currIdx] = currBar
+    bars[nextIdx] = nextBar
+    this.setState({ bars })
+  }
+
+  finalizeBars = () => {
+    const bars = this.state.bars.slice()
+    let time = 0
+    const n = this.state.value
+
+    bars.forEach((bar, idx) => {
+      setTimeout(() => {
+        bars[idx] = this.createBar(bar.props.num, idx, GREEN)
+        this.setState({ bars })
+      }, time)
+      time = this.incrementTime(time, n)
+    })
+
+    setTimeout(() => this.isSorting = false, time)
+  }
+
+  // Handle Functions
+
   handleSampleChange = evt => {
     const value = evt.target.value
-    this.generateBars(value)
     this.setState({ value })
+    if (!this.isSorting) this.generateBars(value)
   }
 
   handleSortClick = () => {
+    if (this.isSorting || this.state.bars.length != this.state.value) return
+    this.isSorting = true
+
     const dropdown = document.getElementById('dropdown')
     switch (dropdown.value) {
       case 'Bubble Sort':
@@ -55,26 +87,23 @@ export default class SortingVisualizer extends Component {
         break
       default:
         alert("Please choose a sorting algorithm!")
+        this.isSorting = false
     }
   }
 
-  handleResetClick = () => this.generateBars()
-
-  updateBars(bars, currNum, nextNum, currIdx, nextIdx, selected) {
-    const currBar = this.createBar(currNum, currIdx, selected)
-    const nextBar = this.createBar(nextNum, nextIdx, selected)
-    bars[currIdx] = currBar
-    bars[nextIdx] = nextBar
-    this.setState({ bars })
+  handleResetClick = () => {
+    if (this.isSorting) return
+    this.generateBars(this.state.value)
   }
 
-  incrementTime(time, n) {
-    return time + TIME / n
-  }
+  // Sorting Functions
+
+  incrementTime = (time, n) => time + TIME / n
 
   bubbleSort = () => {
     const bars = this.state.bars.slice()
     const n = bars.length
+    const value = this.state.value
     let time = 0
 
     for (let i = n - 1; i > 0; i--) {
@@ -86,7 +115,7 @@ export default class SortingVisualizer extends Component {
         setTimeout(() => {
           currNum = bars[j].props.num
           nextNum = bars[j + 1].props.num
-          this.updateBars(bars, currNum, nextNum, j, j + 1, true)
+          this.updateBars(bars, currNum, nextNum, j, j + 1, RED, value)
         }, time)
         time = this.incrementTime(time, n)
 
@@ -94,22 +123,25 @@ export default class SortingVisualizer extends Component {
         setTimeout(() => {
           if (currNum > nextNum) {
             [currNum, nextNum] = [nextNum, currNum]
-            this.updateBars(bars, currNum, nextNum, j, j + 1, true)
+            this.updateBars(bars, currNum, nextNum, j, j + 1, RED, value)
           }
         }, time)
         time = this.incrementTime(time, n)
 
         // Change color back
-        setTimeout(() => this.updateBars(bars, currNum, nextNum, j, j + 1, false), time)
+        setTimeout(() => this.updateBars(bars, currNum, nextNum, j, j + 1, BLUE, value), time)
         time = this.incrementTime(time, n)
       }
     }
+    
+    setTimeout(() => this.finalizeBars(time, n), time)
   }
 
   insertionSort = () => {
     const bars = this.state.bars.slice()
     const nums = bars.map(bar => bar.props.num)
     const n = bars.length
+    const value = this.state.value
     let time = 0
 
     for (let i = 1; i < n; i++) {
@@ -126,7 +158,7 @@ export default class SortingVisualizer extends Component {
         setTimeout(() => {
           currNum = bars[j].props.num
           prevNum = bars[j - 1].props.num
-          this.updateBars(bars, currNum, prevNum, j, j - 1, true)
+          this.updateBars(bars, currNum, prevNum, j, j - 1, RED, value)
         }, time)
         time = this.incrementTime(time, n)
 
@@ -134,19 +166,23 @@ export default class SortingVisualizer extends Component {
         setTimeout(() => {
           if (prevNum > currNum) {
             [currNum, prevNum] = [prevNum, currNum]
-            this.updateBars(bars, currNum, prevNum, j, j - 1, true)
+            this.updateBars(bars, currNum, prevNum, j, j - 1, RED, value)
           }
         }, time)
         time = this.incrementTime(time, n)
 
         // Change color back
-        setTimeout(() => this.updateBars(bars, currNum, prevNum, j, j - 1, false), time)
+        setTimeout(() => this.updateBars(bars, currNum, prevNum, j, j - 1, BLUE, value), time)
         time = this.incrementTime(time, n)
       }
     }
+
+    setTimeout(() => this.finalizeBars(), time)
   }
 
-  render() {
+  // Render Function
+
+  render = () => {
     return (
       <>
         <div>
@@ -157,6 +193,8 @@ export default class SortingVisualizer extends Component {
     )
   }
 }
+
+// Styling Functions
 
 function randomBetween(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
