@@ -87,6 +87,9 @@ export default class SortingVisualizer extends Component {
 
     const dropdown = document.getElementById('dropdown')
     switch (dropdown.value) {
+      case 'Bogo Sort':
+        this.bogoSort()
+        break
       case 'Bubble Sort':
         this.bubbleSort()
         break
@@ -519,6 +522,55 @@ export default class SortingVisualizer extends Component {
 
     helper(nums, 0, n)
     setTimeout(() => this.finalizeBars(), time)
+  }
+
+  bogoSort = () => {
+    const bars = this.state.bars.slice()
+    const nums = bars.map(bar => bar.props.num)
+    const n = bars.length
+    const value = this.state.value
+    let time = 0
+
+    const permutation = (bank, A) => {
+      if (bank.length === 0) {
+        return [A]
+      }
+
+      const P = []
+
+      bank.forEach(num => {
+        const newBank = bank.filter(number => number !== num)
+        const newA = A.slice()
+        newA.push(num)
+        P.push(...permutation(newBank, newA))
+      })
+
+      return P
+    }
+
+    const isSorted = A => {
+      for (let i = 1; i < A.length; i++) {
+        if (A[i] < A[i - 1]) return false
+      }
+      return true
+    }
+
+    try {
+      permutation(nums, []).some(perm => {
+        setTimeout(() => {
+          perm.forEach((num, idx) => {
+            this.updateBar(bars, num, idx, BLUE, value)
+          })
+        }, time)
+        time += this.incrementTime(n)
+        return isSorted(perm)
+      })
+
+      setTimeout(() => this.finalizeBars(), time)
+    } catch (e) {
+      alert(e)
+      this.isSorting = false
+    }
   }
 
   // Render Function
