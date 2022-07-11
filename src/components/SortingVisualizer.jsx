@@ -4,10 +4,11 @@ import TextContainer from './TextContainer'
 
 const DEFAULT_VALUE = 10
 const BLUE = '#c7e4ff'
+const LIGHT_BLUE = '#bbfaf8'
 const RED = '#ff9494'
 const GREEN = '#b3ffc3'
 const PURPLE = '#e3c7ff'
-const TIME = 1000
+const TIME = 500
 
 export default class SortingVisualizer extends Component {
   constructor(props) {
@@ -95,6 +96,9 @@ export default class SortingVisualizer extends Component {
       case 'Merge Sort':
         this.mergeSort()
         break
+      case 'Quick Sort':
+        this.quickSort()
+        break
       case 'Selection Sort':
         this.selectionSort()
         break
@@ -111,10 +115,13 @@ export default class SortingVisualizer extends Component {
 
   // Sorting Functions
 
-  incrementTime = (n) => TIME / n
+  incrementTime = (n, b = true) => {
+    return b ? TIME / n : 0
+  }
 
   bubbleSort = () => {
     const bars = this.state.bars.slice()
+    const nums = bars.map(bar => bar.props.num)
     const n = bars.length
     const value = this.state.value
     let time = 0
@@ -138,7 +145,13 @@ export default class SortingVisualizer extends Component {
             this.updateBars(bars, currNum, nextNum, j, j + 1, RED, value)
           }
         }, time)
-        time += this.incrementTime(n)
+        time += this.incrementTime(n, nums[j] > nums[j + 1])
+
+        if (nums[j] > nums[j + 1]) {
+          const temp = nums[j]
+          nums[j] = nums[j + 1]
+          nums[j + 1] = temp
+        }
 
         // Change color back
         setTimeout(() => this.updateBars(bars, currNum, nextNum, j, j + 1, BLUE, value), time)
@@ -289,56 +302,57 @@ export default class SortingVisualizer extends Component {
       const mid = Math.floor(A.length / 2)
       const left = helper(A.slice(0, mid), I.slice(0, mid))
       const right = helper(A.slice(mid), I.slice(mid))
-      
+
       mergeVisualizer(left.slice(), right.slice(), I)
       return merge(left, right)
     }
 
     const merge = (left, right) => {
-      const sortedArr = []
+      const A = []
 
       while (left.length !== 0 && right.length !== 0) {
         if (left[0] > right[0]) {
-          sortedArr.push(right.shift())
+          A.push(right.shift())
         } else {
-          sortedArr.push(left.shift())
+          A.push(left.shift())
         }
       }
 
       while (left.length !== 0) {
-        sortedArr.push(left.shift())
+        A.push(left.shift())
       }
 
       while (right.length !== 0) {
-        sortedArr.push(right.shift())
+        A.push(right.shift())
       }
 
-      return sortedArr
+      return A
     }
 
     const mergeVisualizer = (left, right, currIndices) => {
       setTimeout(() => {
         const unsortedArr = left.concat(right)
-        const sortedArr = []
+        const A = []
 
         while (left.length !== 0 && right.length !== 0) {
           if (left[0] > right[0]) {
-            sortedArr.push(right.shift())
+            A.push(right.shift())
           } else {
-            sortedArr.push(left.shift())
+            A.push(left.shift())
           }
         }
 
         while (left.length !== 0) {
-          sortedArr.push(left.shift())
+          A.push(left.shift())
         }
 
         while (right.length !== 0) {
-          sortedArr.push(right.shift())
+          A.push(right.shift())
         }
 
         let swapTime = this.incrementTime(n)
 
+        // Highlight all bars in the current indices
         setTimeout(() => {
           for (let i = 0; i < currIndices.length; i++) {
             this.updateBar(bars, unsortedArr[i], currIndices[i], RED, value)
@@ -347,10 +361,12 @@ export default class SortingVisualizer extends Component {
         swapTime += this.incrementTime(n)
 
         for (let i = 0; i < currIndices.length; i++) {
-          setTimeout(() => this.updateBar(bars, sortedArr[i], currIndices[i], RED, value), swapTime)
+          // Place the sorted number in the correct position
+          setTimeout(() => this.updateBar(bars, A[i], currIndices[i], RED, value), swapTime)
           swapTime += this.incrementTime(n)
 
-          setTimeout(() => this.updateBar(bars, sortedArr[i], currIndices[i], BLUE, value), swapTime)
+          // Change the color back
+          setTimeout(() => this.updateBar(bars, A[i], currIndices[i], BLUE, value), swapTime)
           swapTime += this.incrementTime(n)
         }
       }, time)
@@ -358,6 +374,150 @@ export default class SortingVisualizer extends Component {
     }
 
     helper(nums, indices)
+    setTimeout(() => this.finalizeBars(), time)
+  }
+
+  quickSort = () => {
+    const bars = this.state.bars.slice()
+    const nums = bars.map(bar => bar.props.num)
+    const n = bars.length
+    const value = this.state.value
+    let time = 0
+
+    const helper = (A, l, h) => {
+      if (l < h) {
+        const pivot = partition(A, l, h)
+        helper(A, l, pivot)
+        helper(A, pivot + 1, h)
+      }
+    }
+
+    const partition = (A, l, h) => {
+      const pivot = A[l]
+      let i = l
+      let j = h
+      let temp, iBar, jBar, pivotBar, iBarIdx, jBarIdx
+
+      setTimeout(() => {
+        pivotBar = bars[l].props.num
+        iBarIdx = l
+        jBarIdx = h
+        this.updateBar(bars, pivotBar, l, PURPLE, value)
+
+        for (let idx = l + 1; idx < h; idx++) {
+          const barNum = bars[idx].props.num
+          this.updateBar(bars, barNum, idx, RED, value)
+        }
+      }, time)
+      time += this.incrementTime(n)
+
+      while (i < j) {
+        do {
+          i++
+
+          // Highlight next bar from the left
+          setTimeout(() => {
+            iBarIdx++
+            if (iBarIdx < h) {
+              iBar = bars[iBarIdx].props.num
+              this.updateBar(bars, iBar, iBarIdx, LIGHT_BLUE, value)
+            }
+          }, time)
+          time += this.incrementTime(n, i < h)
+
+          // Highlight bar red if it is not greater than the pivot
+          setTimeout(() => {
+            if (iBar <= pivotBar && iBarIdx < h) {
+              this.updateBar(bars, iBar, iBarIdx, RED, value)
+            }
+          }, time)
+          time += this.incrementTime(n, A[i] <= pivot && i < h)
+        } while (A[i] <= pivot)
+
+        do {
+          j--
+
+          // Highlight next bar from the right
+          setTimeout(() => {
+            jBarIdx--
+            if (jBarIdx !== l && jBarIdx !== iBarIdx) {
+              jBar = bars[jBarIdx].props.num
+              this.updateBar(bars, jBar, jBarIdx, LIGHT_BLUE, value)
+            }
+          }, time)
+          time += this.incrementTime(n, j !== l && j !== i)
+
+          // Highlight bar red if it is not less than or equal to the pivot
+          setTimeout(() => {
+            if (jBar > pivotBar && jBarIdx !== l && jBarIdx !== iBarIdx) {
+              this.updateBar(bars, jBar, jBarIdx, RED, value)
+            }
+          }, time)
+          time += this.incrementTime(n, A[j] > pivot && j !== l && j !== i)
+        } while (A[j] > pivot)
+
+        // Switch bars
+        setTimeout(() => {
+          if (iBarIdx < jBarIdx) {
+            [iBar, jBar] = [jBar, iBar]
+            this.updateBars(bars, iBar, jBar, iBarIdx, jBarIdx, LIGHT_BLUE, value)
+          }
+        }, time)
+
+        if (i < j) {
+          temp = A[i]
+          A[i] = A[j]
+          A[j] = temp
+          time += this.incrementTime(n)
+        }
+
+        // Set bar to red
+        setTimeout(() => {
+          if (iBarIdx < h) {
+            this.updateBar(bars, iBar, iBarIdx, RED, value)
+          }
+
+          if (jBarIdx !== l) {
+            this.updateBar(bars, jBar, jBarIdx, RED, value)
+          }
+        }, time)
+        time += this.incrementTime(n, i < h || j !== l)
+      }
+
+      temp = A[l]
+      A[l] = A[j]
+      A[j] = temp
+
+      // Set the new pivot location to light blue
+      setTimeout(() => {
+        if (jBarIdx !== l) {
+          this.updateBar(bars, jBar, jBarIdx, LIGHT_BLUE, value)
+        }
+      }, time)
+      time += this.incrementTime(n, j !== l)
+
+      // Switch bars
+      setTimeout(() => {
+        if (jBarIdx !== l) {
+          this.updateBar(bars, pivotBar, jBarIdx, PURPLE, value)
+          this.updateBar(bars, jBar, l, LIGHT_BLUE, value)
+        }
+      }, time)
+      time += this.incrementTime(n, j !== l)
+
+      // Change all bars back to blue
+      setTimeout(() => {
+        for (let idx = l; idx < h; idx++) {
+          const barNum = bars[idx].props.num
+          this.updateBar(bars, barNum, idx, BLUE, value)
+        }
+      }, time)
+      time += this.incrementTime(n)
+
+      return j
+    }
+
+    helper(nums, 0, n)
     setTimeout(() => this.finalizeBars(), time)
   }
 
@@ -375,22 +535,19 @@ export default class SortingVisualizer extends Component {
   }
 }
 
-// Styling Functions
+// Miscellaneous Functions
 
-function randomBetween(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
+const randomBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
 
-function getBarWidth(length, spacing) {
-  return (100 - spacing * (length - 1)) / length
-}
+const getBarWidth = (length, spacing) => (100 - spacing * (length - 1)) / length
 
-function getSpacing() {
+const getSpacing = () => {
   const spacing = getComputedStyle(document.body).getPropertyValue('--spacing')
   return parseFloat(spacing)
 }
 
-function getMaxBarHeight() {
+const getMaxBarHeight = () => {
   const textContainerHeight = getComputedStyle(document.body).getPropertyValue('--text-container-height')
   return 100 - parseInt(textContainerHeight)
 }
+
