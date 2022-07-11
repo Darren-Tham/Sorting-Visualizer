@@ -11,6 +11,7 @@ export default function TextContainer(props) {
         <option>Merge Sort</option>
         <option>Quick Sort</option>
         <option>Selection Sort</option>
+        <option>Shell Sort</option>
       </select>
       <input type="text" min="1" defaultValue={props.defaultValue} onChange={props.handleSampleChange} />
       <button onClick={props.handleResetClick}>Reset</button>

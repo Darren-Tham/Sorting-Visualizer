@@ -105,6 +105,9 @@ export default class SortingVisualizer extends Component {
       case 'Selection Sort':
         this.selectionSort()
         break
+      case 'Shell Sort':
+        this.shellSort()
+        break
       default:
         alert("Please choose a sorting algorithm!")
         this.isSorting = false
@@ -162,7 +165,7 @@ export default class SortingVisualizer extends Component {
       }
     }
 
-    setTimeout(() => this.finalizeBars(time, n), time)
+    setTimeout(() => this.finalizeBars(), time)
   }
 
   insertionSort = () => {
@@ -571,6 +574,48 @@ export default class SortingVisualizer extends Component {
       alert(e)
       this.isSorting = false
     }
+  }
+
+  shellSort = () => {
+    const bars = this.state.bars.slice()
+    const nums = bars.map(bar => bar.props.num)
+    const n = bars.length
+    const value = this.state.value
+    let time = 0
+
+    for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+      for (let i = gap; i < n; i++) {
+        for (let j = i - gap; j >= 0; j -= gap) {
+          let currNum, nextNum
+
+          setTimeout(() => {
+            currNum = bars[j].props.num
+            nextNum = bars[j + gap].props.num
+            this.updateBars(bars, currNum, nextNum, j, j + gap, RED, value)
+          }, time)
+          time += this.incrementTime(n)
+
+          setTimeout(() => {
+            if (currNum > nextNum) {
+              [currNum, nextNum] = [nextNum, currNum]
+              this.updateBars(bars, currNum, nextNum, j, j + gap, RED, value)
+            }
+          }, time)
+          time += this.incrementTime(n, nums[j] > nums[j + gap])
+          
+          setTimeout(() => this.updateBars(bars, currNum, nextNum, j, j + gap, BLUE, value), time)
+          time += this.incrementTime(n)
+
+          if (nums[j] > nums[j + gap]) {
+            const temp = nums[j]
+            nums[j] = nums[j + gap]
+            nums[j + gap] = temp
+          } else break
+        }
+      }
+    }
+
+    setTimeout(() => this.finalizeBars(), time)
   }
 
   // Render Function
