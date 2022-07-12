@@ -96,6 +96,9 @@ export default class SortingVisualizer extends Component {
       case 'Cocktail Sort':
         this.cocktailSort()
         break
+      case 'Gnome Sort':
+        this.gnomeSort()
+        break
       case 'Insertion Sort':
         this.insertionSort()
         break
@@ -692,6 +695,63 @@ export default class SortingVisualizer extends Component {
       }
 
       if (startSorted || endSorted) break
+    }
+
+    setTimeout(() => this.finalizeBars(), time)
+  }
+
+  gnomeSort = () => {
+    const bars = this.state.bars.slice()
+    const nums = bars.map(bar => bar.props.num)
+    const n = bars.length
+    const value = this.state.value
+    let time = 0
+
+    let i = 0
+    let barIdx = 0
+    while (i < n) {
+      let currNum, nextNum
+      setTimeout(() => {
+        currNum = bars[barIdx].props.num
+        this.updateBar(bars, currNum, barIdx, RED, value)
+
+        if (barIdx !== 0) {
+          nextNum = bars[barIdx - 1].props.num
+          this.updateBar(bars, nextNum, barIdx - 1, RED, value)
+        }
+      }, time)
+      time += this.incrementTime(n)
+
+      if (i === 0 || nums[i] >= nums[i - 1]) {
+        setTimeout(() => {
+          this.updateBar(bars, currNum, barIdx, BLUE, value)
+
+          if (barIdx !== 0) {
+            this.updateBar(bars, nextNum, barIdx - 1, BLUE, value)
+          }
+
+          barIdx++
+        }, time)
+        time += this.incrementTime(n)
+        i++
+      } else {
+        setTimeout(() => {
+          [currNum, nextNum] = [nextNum, currNum]
+          this.updateBars(bars, currNum, nextNum, barIdx, barIdx - 1, RED, value)
+        }, time)
+        time += this.incrementTime(n)
+
+        setTimeout(() => {
+          this.updateBars(bars, currNum, nextNum, barIdx, barIdx - 1, BLUE, value)
+          barIdx--
+        }, time)
+        time += this.incrementTime(n)
+
+        const temp = nums[i]
+        nums[i] = nums[i - 1]
+        nums[i - 1] = temp
+        i--
+      }
     }
 
     setTimeout(() => this.finalizeBars(), time)

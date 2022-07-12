@@ -8,6 +8,7 @@ export default function TextContainer(props) {
         <option>Bogo Sort</option>
         <option>Bubble Sort</option>
         <option>Cocktail Sort</option>
+        <option>Gnome Sort</option>
         <option>Insertion Sort</option>
         <option>Merge Sort</option>
         <option>Quick Sort</option>
