@@ -93,6 +93,9 @@ export default class SortingVisualizer extends Component {
       case 'Bubble Sort':
         this.bubbleSort()
         break
+      case 'Cocktail Sort':
+        this.cocktailSort()
+        break
       case 'Insertion Sort':
         this.insertionSort()
         break
@@ -602,7 +605,7 @@ export default class SortingVisualizer extends Component {
             }
           }, time)
           time += this.incrementTime(n, nums[j] > nums[j + gap])
-          
+
           setTimeout(() => this.updateBars(bars, currNum, nextNum, j, j + gap, BLUE, value), time)
           time += this.incrementTime(n)
 
@@ -613,6 +616,82 @@ export default class SortingVisualizer extends Component {
           } else break
         }
       }
+    }
+
+    setTimeout(() => this.finalizeBars(), time)
+  }
+
+  cocktailSort = () => {
+    const bars = this.state.bars.slice()
+    const nums = bars.map(bar => bar.props.num)
+    const n = bars.length
+    const value = this.state.value
+    let time = 0
+
+    for (let start = 0, end = n - 1; start < end; start++) {
+      let currNum, nextNum, temp
+      let startSorted = true
+      let endSorted = true
+
+      for (let i = start; i < end; i++) {
+        setTimeout(() => {
+          currNum = bars[i].props.num
+          nextNum = bars[i + 1].props.num
+          this.updateBars(bars, currNum, nextNum, i, i + 1, RED, value)
+        }, time)
+        time += this.incrementTime(n)
+
+        setTimeout(() => {
+          if (currNum > nextNum) {
+            [currNum, nextNum] = [nextNum, currNum]
+            this.updateBars(bars, currNum, nextNum, i, i + 1, RED, value)
+          }
+        }, time)
+        time += this.incrementTime(n, nums[i] > nums[i + 1])
+
+        setTimeout(() => this.updateBars(bars, currNum, nextNum, i, i + 1, BLUE, value), time)
+        time += this.incrementTime(n)
+
+        if (nums[i] > nums[i + 1]) {
+          temp = nums[i]
+          nums[i] = nums[i + 1]
+          nums[i + 1] = temp
+          startSorted = false
+        }
+      }
+
+      end--
+
+      if (!startSorted) {
+        for (let i = end; i > start; i--) {
+          setTimeout(() => {
+            currNum = bars[i].props.num
+            nextNum = bars[i - 1].props.num
+            this.updateBars(bars, currNum, nextNum, i, i - 1, RED, value)
+          }, time)
+          time += this.incrementTime(n)
+
+          setTimeout(() => {
+            if (currNum < nextNum) {
+              [currNum, nextNum] = [nextNum, currNum]
+              this.updateBars(bars, currNum, nextNum, i, i - 1, RED, value)
+            }
+          }, time)
+          time += this.incrementTime(n, nums[i] < nums[i - 1])
+
+          setTimeout(() => this.updateBars(bars, currNum, nextNum, i, i - 1, BLUE, value), time)
+          time += this.incrementTime(n)
+
+          if (nums[i] < nums[i - 1]) {
+            temp = nums[i]
+            nums[i] = nums[i - 1]
+            nums[i - 1] = temp
+            endSorted = false
+          }
+        }
+      }
+
+      if (startSorted || endSorted) break
     }
 
     setTimeout(() => this.finalizeBars(), time)
