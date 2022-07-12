@@ -108,6 +108,9 @@ export default class SortingVisualizer extends Component {
       case 'Quick Sort':
         this.quickSort()
         break
+      case 'Radix Sort':
+        this.radixSort()
+        break
       case 'Selection Sort':
         this.selectionSort()
         break
@@ -751,6 +754,58 @@ export default class SortingVisualizer extends Component {
         nums[i] = nums[i - 1]
         nums[i - 1] = temp
         i--
+      }
+    }
+
+    setTimeout(() => this.finalizeBars(), time)
+  }
+
+  radixSort = () => {
+    const bars = this.state.bars.slice()
+    const nums = bars.map(bar => bar.props.num)
+    const n = bars.length
+    const value = this.state.value
+    let time = 0
+
+    const max = nums.reduce((m, curr) => m > curr ? m : curr)
+
+    for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
+      const count = new Array(10).fill(0)
+      const output = new Array(n)
+
+      for (let i = 0; i < n; i++) {
+        const digit = Math.floor(nums[i] / exp) % 10
+        count[digit]++
+      }
+
+      for (let i = 1; i < 10; i++) {
+        count[i] += count[i - 1]
+      }
+
+      for (let i = n - 1; i >= 0; i--) {
+        const digit = Math.floor(nums[i] / exp) % 10
+        output[count[digit] - 1] = nums[i]
+        count[digit]--
+      }
+
+      for (let i = 0; i < n; i++) {
+        let currNum
+        setTimeout(() => {
+          currNum = bars[i].props.num
+          this.updateBar(bars, currNum, i, RED, value)
+        }, time)
+        time += this.incrementTime(n)
+
+        setTimeout(() => {
+          currNum = output[i]
+          this.updateBar(bars, currNum, i, RED, value)
+        }, time)
+        time += this.incrementTime(n)
+
+        setTimeout(() => this.updateBar(bars, currNum, i, BLUE, value), time)
+        time += this.incrementTime(n)
+
+        nums[i] = output[i]
       }
     }
 
