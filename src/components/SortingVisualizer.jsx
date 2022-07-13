@@ -87,6 +87,9 @@ export default class SortingVisualizer extends Component {
 
     const dropdown = document.getElementById('dropdown')
     switch (dropdown.value) {
+      case 'Bitonic Sort':
+        this.bitonicSort()
+        break
       case 'Bogo Sort':
         this.bogoSort()
         break
@@ -810,6 +813,93 @@ export default class SortingVisualizer extends Component {
     }
 
     setTimeout(() => this.finalizeBars(), time)
+  }
+
+  bitonicSort = () => {
+    const bars = this.state.bars.slice()
+    const nums = bars.map(bar => bar.props.num)
+    const n = bars.length
+    const value = this.state.value
+    let time = 0
+
+    const helper = (low, count, isAscending) => {
+      if (count > 1) {
+        const k = count / 2
+        helper(low, k, true)
+        helper(low + k, k, false)
+        bitonicMerge(low, count, isAscending)
+      }
+    }
+
+    const bitonicMerge = (low, count, isAscending) => {
+      if (count > 1) {
+        setTimeout(() => {
+          for (let i = low; i < low + count; i++) {
+            const currNum = bars[i].props.num
+            this.updateBar(bars, currNum, i, RED, value)
+          }
+        }, time)
+        time += this.incrementTime(n)
+
+        const k = count / 2
+        for (let i = low; i < low + k; i++) {
+          let currNum, nextNum
+          setTimeout(() => {
+            currNum = bars[i].props.num
+            nextNum = bars[i + k].props.num
+            this.updateBars(bars, currNum, nextNum, i, i + k, LIGHT_BLUE, value)
+          }, time)
+          time += this.incrementTime(n)
+
+          setTimeout(() => {
+            if (currNum > nextNum === isAscending) {
+              [currNum, nextNum] = [nextNum, currNum]
+              this.updateBars(bars, currNum, nextNum, i, i + k, LIGHT_BLUE, value)
+            }
+          }, time)
+          time += this.incrementTime(n, nums[i] > nums[i + k] === isAscending)
+
+          setTimeout(() => this.updateBars(bars, currNum, nextNum, i, i + k, RED, value), time)
+          time += this.incrementTime(n)
+
+          if (nums[i] > nums[i + k] === isAscending) {
+            const temp = nums[i]
+            nums[i] = nums[i + k]
+            nums[i + k] = temp
+          }
+        }
+
+        setTimeout(() => {
+          for (let i = low; i < low + count; i++) {
+            const currNum = bars[i].props.num
+            this.updateBar(bars, currNum, i, BLUE, value)
+          }
+        }, time)
+        time += this.incrementTime(n)
+
+        bitonicMerge(low, k, isAscending)
+        bitonicMerge(low + k, k, isAscending)
+      }
+    }
+
+    const isLoggable = num => {
+      while (num > 1) {
+        if (num % 2 === 0) {
+          num >>= 1
+        } else {
+          return false
+        }
+      }
+      return true
+    }
+
+    if (isLoggable(value)) {
+      helper(0, n, true)
+      setTimeout(() => this.finalizeBars(), time)
+    } else {
+      alert('Number of elements must be a power of 2!')
+      this.isSorting = false
+    }
   }
 
   // Render Function

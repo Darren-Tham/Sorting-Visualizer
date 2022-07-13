@@ -5,6 +5,7 @@ export default function TextContainer(props) {
     <div className="text-container">
       <select id="dropdown">
         <option>Choose a sorting algorithm!</option>
+        <option>Bitonic Sort</option>
         <option>Bogo Sort</option>
         <option>Bubble Sort</option>
         <option>Cocktail Sort</option>
