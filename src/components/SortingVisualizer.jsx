@@ -56,14 +56,20 @@ export default class SortingVisualizer extends Component {
     this.setState({ bars })
   }
 
-  finalizeBars = () => {
-    const bars = this.state.bars.slice()
-    const N = this.state.value
-    let time = 0
+  resetBars = (bars, N) => {
+    bars.forEach((bar, i) => {
+      const num = bar.props.num
+      bars[i] = this.createBar(num, i, BLUE, N)
+    })
+    this.setState({ bars })
+  }
 
+  finalizeBars = (bars, N) => {
+    let time = 0
     bars.forEach((bar, i) => {
       setTimeout(() => {
-        bars[i] = this.createBar(bar.props.num, i, GREEN, N)
+        const num = bar.props.num
+        bars[i] = this.createBar(num, i, GREEN, N)
         this.setState({ bars })
       }, time)
       time += this.incrementTime(N)
@@ -83,7 +89,7 @@ export default class SortingVisualizer extends Component {
   }
 
   handleSortClick = () => {
-    if (this.isSorting || this.state.bars.length != this.state.value) return
+    if (this.isSorting || this.state.bars.length !== parseInt(this.state.value)) return
     this.isSorting = true
 
     const dropdown = document.getElementById('dropdown')
@@ -148,6 +154,8 @@ export default class SortingVisualizer extends Component {
     const A = nums.slice()
     const N = this.state.value
     let time = 0
+    
+    this.resetBars(bars, N)
 
     for (let i = N - 1; i > 0; i--) {
       let isSorted = true
@@ -185,17 +193,17 @@ export default class SortingVisualizer extends Component {
       if (isSorted) break
     }
 
-    setTimeout(() => this.finalizeBars(), time)
+    setTimeout(() => this.finalizeBars(bars, N), time)
   }
 
   insertionSort = () => {
     const bars = this.state.bars.slice()
     const nums = bars.map(bar => bar.props.num)
-    const n = bars.length
-    const value = this.state.value
+    const A = nums.slice()
+    const N = bars.length
     let time = 0
 
-    for (let i = 1; i < n; i++) {
+    for (let i = 1; i < N; i++) {
       for (let j = i; j > 0 && nums[j - 1] > nums[j]; j--) {
         // Helps stop insertion early
         const temp = nums[j]
@@ -208,22 +216,22 @@ export default class SortingVisualizer extends Component {
         setTimeout(() => {
           currNum = bars[j].props.num
           prevNum = bars[j - 1].props.num
-          this.updateBars(bars, currNum, prevNum, j, j - 1, RED, value)
+          this.updateBars(bars, currNum, prevNum, j, j - 1, RED, N)
         }, time)
-        time += this.incrementTime(n)
+        time += this.incrementTime(N)
 
         // Switch if not sorted
         setTimeout(() => {
           if (prevNum > currNum) {
             [currNum, prevNum] = [prevNum, currNum]
-            this.updateBars(bars, currNum, prevNum, j, j - 1, RED, value)
+            this.updateBars(bars, currNum, prevNum, j, j - 1, RED, N)
           }
         }, time)
-        time += this.incrementTime(n)
+        time += this.incrementTime(N)
 
         // Change color back
-        setTimeout(() => this.updateBars(bars, currNum, prevNum, j, j - 1, BLUE, value), time)
-        time += this.incrementTime(n)
+        setTimeout(() => this.updateBars(bars, currNum, prevNum, j, j - 1, BLUE, N), time)
+        time += this.incrementTime(N)
       }
     }
 
