@@ -1,4 +1,3 @@
-import { toBeEmpty } from '@testing-library/jest-dom/dist/matchers'
 import React, { Component } from 'react'
 import Bar from './Bar'
 import TextContainer from './TextContainer'
@@ -9,7 +8,7 @@ const LIGHT_BLUE = '#bbfaf8'
 const RED = '#ff9494'
 const GREEN = '#b3ffc3'
 const PURPLE = '#e3c7ff'
-const DURATION = 500
+const DURATION = 5000
 
 export default class SortingVisualizer extends Component {
   constructor(props) {
@@ -178,7 +177,7 @@ export default class SortingVisualizer extends Component {
         this.updateBar(bars, A[j + 1], j + 1, BLUE, N)
         await new Promise(res => setTimeout(res, this.time(N)))
       }
-      if (isSorted) break      
+      if (isSorted) break
     }
 
     this.finalizeBars(bars, N)
@@ -194,11 +193,11 @@ export default class SortingVisualizer extends Component {
     for (let i = 1; i < N; i++) {
       for (let j = i; j > 0; j--) {
         let isSorted = true
-        
+
         this.updateBar(bars, A[j], j, RED, N)
         this.updateBar(bars, A[j - 1], j - 1, RED, N)
         await new Promise(res => setTimeout(res, this.time(N)))
-        
+
         if (A[j - 1] > A[j]) {
           const temp = A[j - 1]
           A[j - 1] = A[j]
@@ -222,75 +221,58 @@ export default class SortingVisualizer extends Component {
     this.finalizeBars(bars, N)
   }
 
-  selectionSort = () => {
+  selectionSort = async () => {
     const bars = this.state.bars.slice()
-    const nums = bars.map(bar => bar.props.num)    
-    const A = nums.slice()
+    const A = bars.map(bar => bar.props.num)
     const N = this.state.value
-    let time = 0
 
     this.resetBars(bars, N)
 
     for (let i = 0; i < N - 1; i++) {
       let min = i
 
-      setTimeout(() => this.updateBar(bars, nums[i], i, PURPLE, N), time)
-      time += this.time(N)
+      this.updateBar(bars, A[i], i, PURPLE, N)
+      await new Promise(res => setTimeout(res, this.time(N)))
 
       for (let j = i + 1; j < N; j++) {
-        setTimeout(() => this.updateBar(bars, nums[j], j, RED, N), time)
-        time += this.time(N)
-
-        setTimeout(() => {
-          if (nums[j] < nums[min]) {
-            if (i === min) {
-              this.updateBar(bars, nums[min], min, RED, N)
-            } else {
-              this.updateBar(bars, nums[min], min, BLUE, N)
-            }
-            this.updateBar(bars, nums[j], j, PURPLE, N)
-          } else {
-            this.updateBar(bars, nums[j], j, BLUE, N)
-          }
-        }, time)
-        time += this.time(N)
+        this.updateBar(bars, A[j], j, RED, N)
+        await new Promise(res => setTimeout(res, this.time(N)))
 
         if (A[j] < A[min]) {
+          if (i === min) {
+            this.updateBar(bars, A[i], i, RED, N)
+          } else {
+            this.updateBar(bars, A[min], min, BLUE, N)
+          }
+          this.updateBar(bars, A[j], j, PURPLE, N)
           min = j
+        } else {
+          this.updateBar(bars, A[j], j, BLUE, N)
         }
+        await new Promise(res => setTimeout(res, this.time(N)))
       }
 
-      setTimeout(() => {
-        if (i === min) {
-          this.updateBar(bars, nums[i], i, BLUE, N)
-        } else {
-          this.updateBar(bars, nums[i], i, RED, N)
-          this.updateBar(bars, nums[min], min, RED, N)
+      if (i === min) {
+        this.updateBar(bars, A[i], i, BLUE, N)
+      } else {
+        this.updateBar(bars, A[min], min, RED, N)
+        await new Promise(res => setTimeout(res, this.time(N)))
 
-          setTimeout(() => {
-            const temp = nums[i]
-            nums[i] = nums[min]
-            nums[min] = temp
-            this.updateBar(bars, nums[i], i, RED, N)
-            this.updateBar(bars, nums[min], min, RED, N)
-          }, this.time(N))
-
-          setTimeout(() => {
-            this.updateBar(bars, nums[i], i, BLUE, N)
-            this.updateBar(bars, nums[min], min, BLUE, N)
-          }, this.time(N) * 2)
-        }
-      }, time)
-      time += this.time(N) * 3
-
-      if (min !== i) {
         const temp = A[i]
         A[i] = A[min]
         A[min] = temp
+
+        this.updateBar(bars, A[i], i, RED, N)
+        this.updateBar(bars, A[min], min, RED, N)
+        await new Promise(res => setTimeout(res, this.time(N)))
+
+        this.updateBar(bars, A[i], i, BLUE, N)
+        this.updateBar(bars, A[min], min, BLUE, N)
       }
+      await new Promise(res => setTimeout(res, this.time(N)))
     }
 
-    setTimeout(() => this.finalizeBars(bars, N), time)
+    this.finalizeBars(bars, N)
   }
 
   mergeSort = () => {
