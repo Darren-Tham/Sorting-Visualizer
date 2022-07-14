@@ -187,7 +187,7 @@ export default class SortingVisualizer extends Component {
         await new Promise(res => setTimeout(res, time))
         if (isSorted(perms[i])) break
       }
-      
+
       this.finalizeBars(bars, N)
     } catch (err) {
       alert(err)
@@ -493,46 +493,45 @@ export default class SortingVisualizer extends Component {
     this.finalizeBars(bars, N)
   }
 
-  shellSort = () => {
+  shellSort = async () => {
     const bars = this.state.bars.slice()
-    const nums = bars.map(bar => bar.props.num)
-    const n = bars.length
-    const value = this.state.value
-    let time = 0
+    const A = bars.map(bar => bar.props.num)
+    const N = this.state.value
+    const time = this.time(N)
 
-    for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
-      for (let i = gap; i < n; i++) {
+    this.resetBars(bars, N)
+
+    for (let gap = Math.floor(N / 2); gap > 0; gap = Math.floor(gap / 2)) {
+      for (let i = gap; i < N; i++) {
         for (let j = i - gap; j >= 0; j -= gap) {
-          let currNum, nextNum
+          let isSorted = true
 
-          setTimeout(() => {
-            currNum = bars[j].props.num
-            nextNum = bars[j + gap].props.num
-            this.updateBars(bars, currNum, nextNum, j, j + gap, RED, value)
-          }, time)
-          time += this.time(n)
+          this.updateBar(bars, A[j], j, RED, N)
+          this.updateBar(bars, A[j + gap], j + gap, RED, N)
+          await new Promise(res => setTimeout(res, time))
 
-          setTimeout(() => {
-            if (currNum > nextNum) {
-              [currNum, nextNum] = [nextNum, currNum]
-              this.updateBars(bars, currNum, nextNum, j, j + gap, RED, value)
-            }
-          }, time)
-          time += this.time(n, nums[j] > nums[j + gap])
+          if (A[j] > A[j + gap]) {
+            const temp = A[j]
+            A[j] = A[j + gap]
+            A[j + gap] = temp
 
-          setTimeout(() => this.updateBars(bars, currNum, nextNum, j, j + gap, BLUE, value), time)
-          time += this.time(n)
+            this.updateBar(bars, A[j], j, RED, N)
+            this.updateBar(bars, A[j + gap], j + gap, RED, N)
 
-          if (nums[j] > nums[j + gap]) {
-            const temp = nums[j]
-            nums[j] = nums[j + gap]
-            nums[j + gap] = temp
-          } else break
+            isSorted = false
+            await new Promise(res => setTimeout(res, time))
+          }
+
+          this.updateBar(bars, A[j], j, BLUE, N)
+          this.updateBar(bars, A[j + gap], j + gap, BLUE, N)
+          await new Promise(res => setTimeout(res, time))
+
+          if (isSorted) break
         }
       }
     }
 
-    setTimeout(() => this.finalizeBars(), time)
+    this.finalizeBars(bars, N)
   }
 
   cocktailSort = () => {
