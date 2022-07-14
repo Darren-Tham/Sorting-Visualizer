@@ -10,6 +10,7 @@ export default function TextContainer(props) {
         <option>Bubble Sort</option>
         <option>Cocktail Sort</option>
         <option>Gnome Sort</option>
+        <option>Heap Sort</option>
         <option>Insertion Sort</option>
         <option>Merge Sort</option>
         <option>Quick Sort</option>
@@ -17,7 +18,7 @@ export default function TextContainer(props) {
         <option>Selection Sort</option>
         <option>Shell Sort</option>
       </select>
-      <input type="text" min="1" defaultValue={props.defaultValue} onChange={props.handleSampleChange} />
+      <input type="text" min="1" value={props.value} onChange={props.handleSampleChange} />
       <button onClick={props.handleResetClick}>Reset</button>
       <button onClick={props.handleSortClick}>Sort</button>
     </div>

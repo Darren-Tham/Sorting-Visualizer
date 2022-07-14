@@ -102,6 +102,9 @@ export default class SortingVisualizer extends Component {
       case 'Gnome Sort':
         this.gnomeSort()
         break
+      case 'Heap Sort':
+        this.heapSort()
+        break
       case 'Insertion Sort':
         this.insertionSort()
         break
@@ -902,6 +905,115 @@ export default class SortingVisualizer extends Component {
     }
   }
 
+  heapSort = () => {
+    const bars = this.state.bars.slice()
+    const nums = bars.map(bar => bar.props.num)
+    const n = bars.length
+    const value = this.state.value
+    let time = 0
+
+    const heapify = (end, i) => {
+      let max = i
+      let l = 2 * i + 1
+      let r = l + 1
+      let currBar, lBar, rBar
+
+      setTimeout(() => {
+        currBar = bars[i].props.num
+        this.updateBar(bars, currBar, i, PURPLE, value)
+        if (l < end) {
+          lBar = bars[l].props.num
+          this.updateBar(bars, lBar, l, RED, value)
+        }
+        if (r < end) {
+          rBar = bars[r].props.num
+          this.updateBar(bars, rBar, r, RED, value)
+        }
+      }, time)
+      time += this.incrementTime(n)
+
+      if (l < end && nums[l] > nums[max]) {
+        max = l
+      }
+      if (r < end && nums[r] > nums[max]) {
+        max = r
+      }
+
+      setTimeout(() => {
+        if (max !== i) {
+          let innerTime = this.incrementTime(n)
+          let maxBar = bars[max].props.num
+          this.updateBars(bars, currBar, maxBar, i, max, LIGHT_BLUE, value)
+
+          setTimeout(() => {
+            [currBar, maxBar] = [maxBar, currBar]
+            this.updateBars(bars, currBar, maxBar, i, max, LIGHT_BLUE, value)
+          }, innerTime)
+          innerTime += this.incrementTime(n)
+
+          setTimeout(() => {
+            this.updateBar(bars, currBar, i, RED, value)
+            this.updateBar(bars, maxBar, max, PURPLE, value)
+          }, innerTime)
+        }
+      }, time)
+      time += this.incrementTime(n, max !== i) * 3
+
+      setTimeout(() => {
+        currBar = bars[i].props.num
+        this.updateBar(bars, currBar, i, BLUE, value)
+        if (l < end) {
+          lBar = bars[l].props.num
+          this.updateBar(bars, lBar, l, BLUE, value)
+        }
+        if (r < end) {
+          rBar = bars[r].props.num
+          this.updateBar(bars, rBar, r, BLUE, value)
+        }
+      }, time)
+      time += this.incrementTime(n)
+
+      if (max !== i) {
+        const temp = nums[i]
+        nums[i] = nums[max]
+        nums[max] = temp
+        heapify(end, max)
+      }
+    }
+
+    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+      heapify(n, i)
+    }
+
+    for (let i = n - 1; i > 0; i--) {
+      let firstBar, lastBar
+      setTimeout(() => {
+        firstBar = bars[0].props.num
+        lastBar = bars[i].props.num
+        this.updateBars(bars, firstBar, lastBar, 0, i, RED, value)
+      }, time)
+      time += this.incrementTime(n)
+
+      setTimeout(() => {
+        [firstBar, lastBar] = [lastBar, firstBar]
+        this.updateBars(bars, firstBar, lastBar, 0, i, RED, value)
+      }, time)
+      time += this.incrementTime(n)
+
+      setTimeout(() => {
+        this.updateBars(bars, firstBar, lastBar, 0, i, BLUE, value)
+      }, time)
+      time += this.incrementTime(n)
+
+      const temp = nums[0]
+      nums[0] = nums[i]
+      nums[i] = temp
+      heapify(i, 0)
+    }
+
+    setTimeout(() => this.finalizeBars(), time)
+  }
+
   // Render Function
 
   render = () => {
@@ -910,7 +1022,7 @@ export default class SortingVisualizer extends Component {
         <div>
           {this.state.bars.map(bar => bar)}
         </div>
-        <TextContainer defaultValue={this.state.value} handleSampleChange={this.handleSampleChange} handleSortClick={this.handleSortClick} handleResetClick={this.handleResetClick} />
+        <TextContainer value={this.state.value} handleSampleChange={this.handleSampleChange} handleSortClick={this.handleSortClick} handleResetClick={this.handleResetClick} />
       </>
     )
   }
