@@ -8,7 +8,7 @@ const LIGHT_BLUE = '#bbfaf8'
 const RED = '#ff9494'
 const GREEN = '#b3ffc3'
 const PURPLE = '#e3c7ff'
-const TIME = 500
+const TIME = 1000
 
 export default class SortingVisualizer extends Component {
   constructor(props) {
@@ -24,13 +24,13 @@ export default class SortingVisualizer extends Component {
 
   // Bar Functions
 
-  createBar = (num, idx, color, value) => {
+  createBar = (num, i, color, value) => {
     const spacing = getSpacing()
     const width = getBarWidth(value, spacing)
     const heightPercentage = getMaxBarHeight() / 100
     const height = heightPercentage * num
-    const left = (width + spacing) * idx
-    return <Bar key={idx} width={width} height={height} left={left} color={color} num={num} />
+    const left = (width + spacing) * i
+    return <Bar key={i} width={width} height={height} left={left} color={color} num={num} />
   }
 
   generateBars = value => {
@@ -51,23 +51,22 @@ export default class SortingVisualizer extends Component {
     this.setState({ bars })
   }
 
-  updateBar = (bars, currNum, currIdx, color, value) => {
-    const currBar = this.createBar(currNum, currIdx, color, value)
-    bars[currIdx] = currBar
+  updateBar = (bars, num, i, color, value) => {
+    bars[i] = this.createBar(num, i, color, value)
     this.setState({ bars })
   }
 
   finalizeBars = () => {
     const bars = this.state.bars.slice()
+    const N = this.state.value
     let time = 0
-    const n = this.state.value
 
-    bars.forEach((bar, idx) => {
+    bars.forEach((bar, i) => {
       setTimeout(() => {
-        bars[idx] = this.createBar(bar.props.num, idx, GREEN)
+        bars[i] = this.createBar(bar.props.num, i, GREEN, N)
         this.setState({ bars })
       }, time)
-      time += this.incrementTime(n)
+      time += this.incrementTime(N)
     })
 
     setTimeout(() => this.isSorting = false, time)
@@ -78,7 +77,9 @@ export default class SortingVisualizer extends Component {
   handleSampleChange = evt => {
     const value = evt.target.value
     this.setState({ value })
-    if (!this.isSorting) this.generateBars(value)
+    if (!this.isSorting) {
+      this.generateBars(value)
+    }
   }
 
   handleSortClick = () => {
@@ -130,8 +131,9 @@ export default class SortingVisualizer extends Component {
   }
 
   handleResetClick = () => {
-    if (this.isSorting) return
-    this.generateBars(this.state.value)
+    if (!this.isSorting) {
+      this.generateBars(this.state.value)
+    }
   }
 
   // Sorting Functions
@@ -141,43 +143,46 @@ export default class SortingVisualizer extends Component {
   }
 
   bubbleSort = () => {
-    const bars = this.state.bars.slice()
+    const bars = this.state.bars
     const nums = bars.map(bar => bar.props.num)
-    const n = bars.length
-    const value = this.state.value
+    const A = nums.slice()
+    const N = this.state.value
     let time = 0
 
-    for (let i = n - 1; i > 0; i--) {
+    for (let i = N - 1; i > 0; i--) {
+      let isSorted = true
       for (let j = 0; j < i; j++) {
-        let currNum, nextNum
-
-        // Highlights bars
         setTimeout(() => {
-          currNum = bars[j].props.num
-          nextNum = bars[j + 1].props.num
-          this.updateBars(bars, currNum, nextNum, j, j + 1, RED, value)
+          this.updateBar(bars, nums[j], j, RED, N)
+          this.updateBar(bars, nums[j + 1], j + 1, RED, N)
         }, time)
-        time += this.incrementTime(n)
+        time += this.incrementTime(N)
 
-        // Switch if not sorted
         setTimeout(() => {
-          if (currNum > nextNum) {
-            [currNum, nextNum] = [nextNum, currNum]
-            this.updateBars(bars, currNum, nextNum, j, j + 1, RED, value)
+          if (nums[j] > nums[j + 1]) {
+            const temp = nums[j]
+            nums[j] = nums[j + 1]
+            nums[j + 1] = temp
+            this.updateBar(bars, nums[j], j, RED, N)
+            this.updateBar(bars, nums[j + 1], j + 1, RED, N)
           }
         }, time)
-        time += this.incrementTime(n, nums[j] > nums[j + 1])
+        time += this.incrementTime(N, A[j] > A[j + 1])
 
-        if (nums[j] > nums[j + 1]) {
-          const temp = nums[j]
-          nums[j] = nums[j + 1]
-          nums[j + 1] = temp
+        setTimeout(() => {
+          this.updateBar(bars, nums[j], j, BLUE, N)
+          this.updateBar(bars, nums[j + 1], j + 1, BLUE, N)
+        }, time)
+        time += this.incrementTime(N)
+
+        if (A[j] > A[j + 1]) {
+          const temp = A[j]
+          A[j] = A[j + 1]
+          A[j + 1] = temp
+          isSorted = false
         }
-
-        // Change color back
-        setTimeout(() => this.updateBars(bars, currNum, nextNum, j, j + 1, BLUE, value), time)
-        time += this.incrementTime(n)
       }
+      if (isSorted) break
     }
 
     setTimeout(() => this.finalizeBars(), time)
