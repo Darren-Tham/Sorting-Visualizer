@@ -146,6 +146,55 @@ export default class SortingVisualizer extends Component {
 
   time = N => DURATION / N
 
+  bogoSort = async () => {
+    const bars = this.state.bars.slice()
+    const A = bars.map(bar => bar.props.num)
+    const N = this.state.value
+    const time = this.time(N)
+
+    const permutation = (bank, arr) => {
+      if (bank.length === 0) return [arr]
+
+      const perms = []
+
+      bank.forEach((num, i) => {
+        const newBank = bank.slice(0, i).concat(bank.slice(i + 1))
+        const newArr = arr.slice()
+        newArr.push(num)
+        perms.push(...permutation(newBank, newArr))
+      })
+
+      return perms
+    }
+
+    const isSorted = arr => {
+      for (let i = 1; i < arr.length; i++) {
+        if (arr[i] < arr[i - 1]) {
+          return false
+        }
+      }
+      return true
+    }
+
+    try {
+      this.resetBars(bars, N)
+      const perms = permutation(A, [])
+
+      for (let i = 0; i < perms.length; i++) {
+        for (let j = 0; j < N; j++) {
+          this.updateBar(bars, perms[i][j], j, BLUE, N)
+        }
+        await new Promise(res => setTimeout(res, time))
+        if (isSorted(perms[i])) break
+      }
+      
+      this.finalizeBars(bars, N)
+    } catch (err) {
+      alert(err)
+      this.isSorting = false
+    }
+  }
+
   bubbleSort = async () => {
     const bars = this.state.bars.slice()
     const A = bars.map(bar => bar.props.num)
@@ -442,55 +491,6 @@ export default class SortingVisualizer extends Component {
     }
 
     this.finalizeBars(bars, N)
-  }
-
-  bogoSort = () => {
-    const bars = this.state.bars.slice()
-    const nums = bars.map(bar => bar.props.num)
-    const n = bars.length
-    const value = this.state.value
-    let time = 0
-
-    const permutation = (bank, A) => {
-      if (bank.length === 0) {
-        return [A]
-      }
-
-      const P = []
-
-      bank.forEach(num => {
-        const newBank = bank.filter(number => number !== num)
-        const newA = A.slice()
-        newA.push(num)
-        P.push(...permutation(newBank, newA))
-      })
-
-      return P
-    }
-
-    const isSorted = A => {
-      for (let i = 1; i < A.length; i++) {
-        if (A[i] < A[i - 1]) return false
-      }
-      return true
-    }
-
-    try {
-      permutation(nums, []).some(perm => {
-        setTimeout(() => {
-          perm.forEach((num, idx) => {
-            this.updateBar(bars, num, idx, BLUE, value)
-          })
-        }, time)
-        time += this.time(n)
-        return isSorted(perm)
-      })
-
-      setTimeout(() => this.finalizeBars(), time)
-    } catch (e) {
-      alert(e)
-      this.isSorting = false
-    }
   }
 
   shellSort = () => {
