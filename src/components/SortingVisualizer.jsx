@@ -233,6 +233,72 @@ export default class SortingVisualizer extends Component {
     this.finalizeBars(bars, N)
   }
 
+  cocktailSort = async () => {
+    const bars = this.state.bars.slice()
+    const A = bars.map(bar => bar.props.num)
+    const N = this.state.value
+    const time = this.time(N)
+
+    this.resetBars(bars, N)
+
+    for (let start = 0, end = N - 1; start < end; start++) {
+      let startSorted = true
+      let endSorted = true
+
+      for (let i = start; i < end; i++) {
+        this.updateBar(bars, A[i], i, RED, N)
+        this.updateBar(bars, A[i + 1], i + 1, RED, N)
+        await new Promise(res => setTimeout(res, time))
+
+        if (A[i] > A[i + 1]) {
+          const temp = A[i]
+          A[i] = A[i + 1]
+          A[i + 1] = temp
+
+          this.updateBar(bars, A[i], i, RED, N)
+          this.updateBar(bars, A[i + 1], i + 1, RED, N)
+
+          startSorted = false
+          await new Promise(res => setTimeout(res, time))
+        }
+
+        this.updateBar(bars, A[i], i, BLUE, N)
+        this.updateBar(bars, A[i + 1], i + 1, BLUE, N)
+        await new Promise(res => setTimeout(res, time))
+      }
+
+      end--
+
+      if (!startSorted) {
+        for (let i = end; i > start; i--) {
+          this.updateBar(bars, A[i], i, RED, N)
+          this.updateBar(bars, A[i - 1], i - 1, RED, N)
+          await new Promise(res => setTimeout(res, time))
+
+          if (A[i] < A[i - 1]) {
+            const temp = A[i]
+            A[i] = A[i - 1]
+            A[i - 1] = temp
+
+            this.updateBar(bars, A[i], i, RED, N)
+            this.updateBar(bars, A[i - 1], i - 1, RED, N)
+
+            endSorted = false
+            await new Promise(res => setTimeout(res, time))
+          }
+
+          this.updateBar(bars, A[i], i, BLUE, N)
+          this.updateBar(bars, A[i - 1], i - 1, BLUE, N)
+          await new Promise(res => setTimeout(res, time))
+        }
+      }
+
+      if (startSorted || endSorted) break
+    }
+
+    this.finalizeBars(bars, N)
+  }
+
   insertionSort = async () => {
     const bars = this.state.bars.slice()
     const A = bars.map(bar => bar.props.num)
@@ -532,82 +598,6 @@ export default class SortingVisualizer extends Component {
     }
 
     this.finalizeBars(bars, N)
-  }
-
-  cocktailSort = () => {
-    const bars = this.state.bars.slice()
-    const nums = bars.map(bar => bar.props.num)
-    const n = bars.length
-    const value = this.state.value
-    let time = 0
-
-    for (let start = 0, end = n - 1; start < end; start++) {
-      let currNum, nextNum, temp
-      let startSorted = true
-      let endSorted = true
-
-      for (let i = start; i < end; i++) {
-        setTimeout(() => {
-          currNum = bars[i].props.num
-          nextNum = bars[i + 1].props.num
-          this.updateBars(bars, currNum, nextNum, i, i + 1, RED, value)
-        }, time)
-        time += this.time(n)
-
-        setTimeout(() => {
-          if (currNum > nextNum) {
-            [currNum, nextNum] = [nextNum, currNum]
-            this.updateBars(bars, currNum, nextNum, i, i + 1, RED, value)
-          }
-        }, time)
-        time += this.time(n, nums[i] > nums[i + 1])
-
-        setTimeout(() => this.updateBars(bars, currNum, nextNum, i, i + 1, BLUE, value), time)
-        time += this.time(n)
-
-        if (nums[i] > nums[i + 1]) {
-          temp = nums[i]
-          nums[i] = nums[i + 1]
-          nums[i + 1] = temp
-          startSorted = false
-        }
-      }
-
-      end--
-
-      if (!startSorted) {
-        for (let i = end; i > start; i--) {
-          setTimeout(() => {
-            currNum = bars[i].props.num
-            nextNum = bars[i - 1].props.num
-            this.updateBars(bars, currNum, nextNum, i, i - 1, RED, value)
-          }, time)
-          time += this.time(n)
-
-          setTimeout(() => {
-            if (currNum < nextNum) {
-              [currNum, nextNum] = [nextNum, currNum]
-              this.updateBars(bars, currNum, nextNum, i, i - 1, RED, value)
-            }
-          }, time)
-          time += this.time(n, nums[i] < nums[i - 1])
-
-          setTimeout(() => this.updateBars(bars, currNum, nextNum, i, i - 1, BLUE, value), time)
-          time += this.time(n)
-
-          if (nums[i] < nums[i - 1]) {
-            temp = nums[i]
-            nums[i] = nums[i - 1]
-            nums[i - 1] = temp
-            endSorted = false
-          }
-        }
-      }
-
-      if (startSorted || endSorted) break
-    }
-
-    setTimeout(() => this.finalizeBars(), time)
   }
 
   gnomeSort = () => {
