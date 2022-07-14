@@ -150,6 +150,7 @@ export default class SortingVisualizer extends Component {
     const bars = this.state.bars.slice()
     const A = bars.map(bar => bar.props.num)
     const N = this.state.value
+    const time = this.time(N)
 
     this.resetBars(bars, N)
 
@@ -158,7 +159,7 @@ export default class SortingVisualizer extends Component {
       for (let j = 0; j < i; j++) {
         this.updateBar(bars, A[j], j, RED, N)
         this.updateBar(bars, A[j + 1], j + 1, RED, N)
-        await new Promise(res => setTimeout(res, this.time(N)))
+        await new Promise(res => setTimeout(res, time))
 
 
         if (A[j] > A[j + 1]) {
@@ -170,12 +171,12 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, A[j + 1], j + 1, RED, N)
 
           isSorted = false
-          await new Promise(res => setTimeout(res, this.time(N)))
+          await new Promise(res => setTimeout(res, time))
         }
 
         this.updateBar(bars, A[j], j, BLUE, N)
         this.updateBar(bars, A[j + 1], j + 1, BLUE, N)
-        await new Promise(res => setTimeout(res, this.time(N)))
+        await new Promise(res => setTimeout(res, time))
       }
       if (isSorted) break
     }
@@ -187,6 +188,7 @@ export default class SortingVisualizer extends Component {
     const bars = this.state.bars.slice()
     const A = bars.map(bar => bar.props.num)
     const N = this.state.value
+    const time = this.time(N)
 
     this.resetBars(bars, N)
 
@@ -196,7 +198,7 @@ export default class SortingVisualizer extends Component {
 
         this.updateBar(bars, A[j], j, RED, N)
         this.updateBar(bars, A[j - 1], j - 1, RED, N)
-        await new Promise(res => setTimeout(res, this.time(N)))
+        await new Promise(res => setTimeout(res, time))
 
         if (A[j - 1] > A[j]) {
           const temp = A[j - 1]
@@ -207,12 +209,12 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, A[j - 1], j - 1, RED, N)
 
           isSorted = false
-          await new Promise(res => setTimeout(res, this.time(N)))
+          await new Promise(res => setTimeout(res, time))
         }
 
         this.updateBar(bars, A[j], j, BLUE, N)
         this.updateBar(bars, A[j - 1], j - 1, BLUE, N)
-        await new Promise(res => setTimeout(res, this.time(N)))
+        await new Promise(res => setTimeout(res, time))
 
         if (isSorted) break
       }
@@ -226,6 +228,7 @@ export default class SortingVisualizer extends Component {
     const A = bars.map(bar => bar.props.num)
     const I = A.map((_, i) => i)
     const N = this.state.value
+    const time = this.time(N)
 
     const helper = async (arr, indices) => {
       if (arr.length === 1) return arr
@@ -242,7 +245,7 @@ export default class SortingVisualizer extends Component {
       for (let i = 0; i < indices.length; i++) {
         this.updateBar(bars, unsortedArr[i], indices[i], RED, N)
       }
-      await new Promise(res => setTimeout(res, this.time(N)))
+      await new Promise(res => setTimeout(res, time))
 
       const arr = []
 
@@ -266,11 +269,11 @@ export default class SortingVisualizer extends Component {
         if (A[indices[i]] !== arr[i]) {
           this.updateBar(bars, arr[i], indices[i], RED, N)
           A[indices[i]] = arr[i]
-          await new Promise(res => setTimeout(res, this.time(N)))
+          await new Promise(res => setTimeout(res, time))
         }
 
         this.updateBar(bars, arr[i], indices[i], BLUE, N)
-        await new Promise(res => setTimeout(res, this.time(N)))
+        await new Promise(res => setTimeout(res, time))
       }
 
       return arr
@@ -281,10 +284,116 @@ export default class SortingVisualizer extends Component {
     this.finalizeBars(bars, N)
   }
 
+  quickSort = async () => {
+    const bars = this.state.bars.slice()
+    const A = bars.map(bar => bar.props.num)
+    const N = this.state.value
+    const time = this.time(N)
+
+    const helper = async (l, h) => {
+      if (l < h) {
+        const pivot = await partition(l, h)
+        await helper(l, pivot)
+        await helper(pivot + 1, h)
+      }
+    }
+
+    const partition = async (l, h) => {
+      const pivot = A[l]
+      let i = l
+      let j = h
+
+      this.updateBar(bars, pivot, l, PURPLE, N)
+
+      for (let idx = l + 1; idx < h; idx++) {
+        this.updateBar(bars, A[idx], idx, RED, N)
+      }
+
+      await new Promise(res => setTimeout(res, time))
+
+      while (i < j) {
+        do {
+          i++
+
+          if (i !== h) {
+            this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
+            await new Promise(res => setTimeout(res, time))
+
+            if (A[i] <= pivot) {
+              this.updateBar(bars, A[i], i, RED, N)
+              await new Promise(res => setTimeout(res, time))
+            }
+          }
+        } while (i !== h && A[i] <= pivot)
+
+        do {
+          j--
+
+          if (j !== l && j !== i) {
+            this.updateBar(bars, A[j], j, LIGHT_BLUE, N)
+            await new Promise(res => setTimeout(res, time))
+
+            if (A[j] > pivot) {
+              this.updateBar(bars, A[j], j, RED, N)
+              await new Promise(res => setTimeout(res, time))
+            }
+          }
+        } while (j !== l && A[j] > pivot)
+
+        if (i < j) {
+          const temp = A[i]
+          A[i] = A[j]
+          A[j] = temp
+
+          this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
+          this.updateBar(bars, A[j], j, LIGHT_BLUE, N)
+          await new Promise(res => setTimeout(res, time))
+        }
+
+        if (i !== h) {
+          this.updateBar(bars, A[i], i, RED, N)
+        }
+
+        if (j !== l) {
+          this.updateBar(bars, A[j], j, RED, N)
+        }
+
+        if (i !== h || j !== l) {
+          await new Promise(res => setTimeout(res, time))
+        }
+      }
+
+      if (j !== l) {
+        this.updateBar(bars, A[j], j, LIGHT_BLUE, N)
+        await new Promise(res => setTimeout(res, time))
+
+        const temp = A[l]
+        A[l] = A[j]
+        A[j] = temp
+
+        this.updateBar(bars, A[j], j, PURPLE, N)
+        this.updateBar(bars, A[l], l, LIGHT_BLUE, N)
+        await new Promise(res => setTimeout(res, time))
+      }
+
+      for (let idx = l; idx < h; idx++) {
+        this.updateBar(bars, A[idx], idx, BLUE, N)
+      }
+      await new Promise(res => setTimeout(res, time))
+
+      return j
+    }
+
+    this.resetBars(bars, N)
+    await helper(0, N)
+    this.finalizeBars(bars, N)
+  }
+
   selectionSort = async () => {
     const bars = this.state.bars.slice()
     const A = bars.map(bar => bar.props.num)
     const N = this.state.value
+    const time = this.time(N)
 
     this.resetBars(bars, N)
 
@@ -292,11 +401,11 @@ export default class SortingVisualizer extends Component {
       let min = i
 
       this.updateBar(bars, A[i], i, PURPLE, N)
-      await new Promise(res => setTimeout(res, this.time(N)))
+      await new Promise(res => setTimeout(res, time))
 
       for (let j = i + 1; j < N; j++) {
         this.updateBar(bars, A[j], j, RED, N)
-        await new Promise(res => setTimeout(res, this.time(N)))
+        await new Promise(res => setTimeout(res, time))
 
         if (A[j] < A[min]) {
           if (i === min) {
@@ -309,14 +418,14 @@ export default class SortingVisualizer extends Component {
         } else {
           this.updateBar(bars, A[j], j, BLUE, N)
         }
-        await new Promise(res => setTimeout(res, this.time(N)))
+        await new Promise(res => setTimeout(res, time))
       }
 
       if (i === min) {
         this.updateBar(bars, A[i], i, BLUE, N)
       } else {
         this.updateBar(bars, A[min], min, RED, N)
-        await new Promise(res => setTimeout(res, this.time(N)))
+        await new Promise(res => setTimeout(res, time))
 
         const temp = A[i]
         A[i] = A[min]
@@ -324,159 +433,15 @@ export default class SortingVisualizer extends Component {
 
         this.updateBar(bars, A[i], i, RED, N)
         this.updateBar(bars, A[min], min, RED, N)
-        await new Promise(res => setTimeout(res, this.time(N)))
+        await new Promise(res => setTimeout(res, time))
 
         this.updateBar(bars, A[i], i, BLUE, N)
         this.updateBar(bars, A[min], min, BLUE, N)
       }
-      await new Promise(res => setTimeout(res, this.time(N)))
+      await new Promise(res => setTimeout(res, time))
     }
 
     this.finalizeBars(bars, N)
-  }
-
-  quickSort = () => {
-    const bars = this.state.bars.slice()
-    const nums = bars.map(bar => bar.props.num)
-    const n = bars.length
-    const value = this.state.value
-    let time = 0
-
-    const helper = (A, l, h) => {
-      if (l < h) {
-        const pivot = partition(A, l, h)
-        helper(A, l, pivot)
-        helper(A, pivot + 1, h)
-      }
-    }
-
-    const partition = (A, l, h) => {
-      const pivot = A[l]
-      let i = l
-      let j = h
-      let temp, iBar, jBar, pivotBar, iBarIdx, jBarIdx
-
-      setTimeout(() => {
-        pivotBar = bars[l].props.num
-        iBarIdx = l
-        jBarIdx = h
-        this.updateBar(bars, pivotBar, l, PURPLE, value)
-
-        for (let idx = l + 1; idx < h; idx++) {
-          const barNum = bars[idx].props.num
-          this.updateBar(bars, barNum, idx, RED, value)
-        }
-      }, time)
-      time += this.time(n)
-
-      while (i < j) {
-        do {
-          i++
-
-          // Highlight next bar from the left
-          setTimeout(() => {
-            iBarIdx++
-            if (iBarIdx < h) {
-              iBar = bars[iBarIdx].props.num
-              this.updateBar(bars, iBar, iBarIdx, LIGHT_BLUE, value)
-            }
-          }, time)
-          time += this.time(n, i < h)
-
-          // Highlight bar red if it is not greater than the pivot
-          setTimeout(() => {
-            if (iBar <= pivotBar && iBarIdx < h) {
-              this.updateBar(bars, iBar, iBarIdx, RED, value)
-            }
-          }, time)
-          time += this.time(n, A[i] <= pivot && i < h)
-        } while (A[i] <= pivot)
-
-        do {
-          j--
-
-          // Highlight next bar from the right
-          setTimeout(() => {
-            jBarIdx--
-            if (jBarIdx !== l && jBarIdx !== iBarIdx) {
-              jBar = bars[jBarIdx].props.num
-              this.updateBar(bars, jBar, jBarIdx, LIGHT_BLUE, value)
-            }
-          }, time)
-          time += this.time(n, j !== l && j !== i)
-
-          // Highlight bar red if it is not less than or equal to the pivot
-          setTimeout(() => {
-            if (jBar > pivotBar && jBarIdx !== l && jBarIdx !== iBarIdx) {
-              this.updateBar(bars, jBar, jBarIdx, RED, value)
-            }
-          }, time)
-          time += this.time(n, A[j] > pivot && j !== l && j !== i)
-        } while (A[j] > pivot)
-
-        // Switch bars
-        setTimeout(() => {
-          if (iBarIdx < jBarIdx) {
-            [iBar, jBar] = [jBar, iBar]
-            this.updateBars(bars, iBar, jBar, iBarIdx, jBarIdx, LIGHT_BLUE, value)
-          }
-        }, time)
-
-        if (i < j) {
-          temp = A[i]
-          A[i] = A[j]
-          A[j] = temp
-          time += this.time(n)
-        }
-
-        // Set bar to red
-        setTimeout(() => {
-          if (iBarIdx < h) {
-            this.updateBar(bars, iBar, iBarIdx, RED, value)
-          }
-
-          if (jBarIdx !== l) {
-            this.updateBar(bars, jBar, jBarIdx, RED, value)
-          }
-        }, time)
-        time += this.time(n, i < h || j !== l)
-      }
-
-      temp = A[l]
-      A[l] = A[j]
-      A[j] = temp
-
-      // Set the new pivot location to light blue
-      setTimeout(() => {
-        if (jBarIdx !== l) {
-          this.updateBar(bars, jBar, jBarIdx, LIGHT_BLUE, value)
-        }
-      }, time)
-      time += this.time(n, j !== l)
-
-      // Switch bars
-      setTimeout(() => {
-        if (jBarIdx !== l) {
-          this.updateBar(bars, pivotBar, jBarIdx, PURPLE, value)
-          this.updateBar(bars, jBar, l, LIGHT_BLUE, value)
-        }
-      }, time)
-      time += this.time(n, j !== l)
-
-      // Change all bars back to blue
-      setTimeout(() => {
-        for (let idx = l; idx < h; idx++) {
-          const barNum = bars[idx].props.num
-          this.updateBar(bars, barNum, idx, BLUE, value)
-        }
-      }, time)
-      time += this.time(n)
-
-      return j
-    }
-
-    helper(nums, 0, n)
-    setTimeout(() => this.finalizeBars(), time)
   }
 
   bogoSort = () => {
