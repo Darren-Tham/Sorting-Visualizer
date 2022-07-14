@@ -43,14 +43,6 @@ export default class SortingVisualizer extends Component {
     this.setState({ bars })
   }
 
-  updateBars = (bars, currNum, nextNum, currIdx, nextIdx, color, value) => {
-    const currBar = this.createBar(currNum, currIdx, color, value)
-    const nextBar = this.createBar(nextNum, nextIdx, color, value)
-    bars[currIdx] = currBar
-    bars[nextIdx] = nextBar
-    this.setState({ bars })
-  }
-
   updateBar = (bars, num, i, color, value) => {
     bars[i] = this.createBar(num, i, color, value)
     this.setState({ bars })
@@ -88,51 +80,70 @@ export default class SortingVisualizer extends Component {
     }
   }
 
-  handleSortClick = () => {
+  handleSortClick = async () => {
     if (this.isSorting || this.state.bars.length !== parseInt(this.state.value)) return
     this.isSorting = true
 
+    const bars = this.state.bars.slice()
+    const A = bars.map(bar => bar.props.num)
+    const N = this.state.value
+    const time = this.time(N)
+    let isSuccessful = true
+
+    this.resetBars(bars, N)
+
     const dropdown = document.getElementById('dropdown')
     switch (dropdown.value) {
-      case 'Bitonic Sort':
-        this.bitonicSort()
+      case 'Bitonic Sort': {
+        const failed = await this.bitonicSort(bars, A, N, time)
+        if (failed) {
+          isSuccessful = false
+        }
         break
-      case 'Bogo Sort':
-        this.bogoSort()
+      } case 'Bogo Sort': {
+        const failed = await this.bogoSort(bars, A, N, time)
+        if (failed) {
+          isSuccessful = false
+        }
         break
-      case 'Bubble Sort':
-        this.bubbleSort()
+      } case 'Bubble Sort':
+        await this.bubbleSort(bars, A, N, time)
         break
       case 'Cocktail Sort':
-        this.cocktailSort()
+        await this.cocktailSort(bars, A, N, time)
         break
       case 'Gnome Sort':
-        this.gnomeSort()
+        await this.gnomeSort(bars, A, N, time)
         break
       case 'Heap Sort':
-        this.heapSort()
+        await this.heapSort(bars, A, N, time)
         break
       case 'Insertion Sort':
-        this.insertionSort()
+        await this.insertionSort(bars, A, N, time)
         break
       case 'Merge Sort':
-        this.mergeSort()
+        await this.mergeSort(bars, A, N, time)
         break
       case 'Quick Sort':
-        this.quickSort()
+        await this.quickSort(bars, A, N, time)
         break
       case 'Radix Sort':
-        this.radixSort()
+        await this.radixSort(bars, A, N, time)
         break
       case 'Selection Sort':
-        this.selectionSort()
+        await this.selectionSort(bars, A, N, time)
         break
       case 'Shell Sort':
-        this.shellSort()
+        await this.shellSort(bars, A, N, time)
         break
       default:
         alert("Please choose a sorting algorithm!")
+        isSuccessful = false
         this.isSorting = false
+    }
+
+    if (isSuccessful) {
+      this.finalizeBars(bars, N)
     }
   }
 
@@ -146,12 +157,76 @@ export default class SortingVisualizer extends Component {
 
   time = N => DURATION / N
 
-  bogoSort = async () => {
-    const bars = this.state.bars.slice()
-    const A = bars.map(bar => bar.props.num)
-    const N = this.state.value
-    const time = this.time(N)
+  bitonicSort = async (bars, A, N, time) => {
+    const helper = async (low, count, isAscending) => {
+      if (count <= 1) return
 
+      const k = count / 2
+      await helper(low, k, true)
+      await helper(low + k, k, false)
+      await bitonicMerge(low, count, isAscending)
+    }
+
+    const bitonicMerge = async (low, count, isAscending) => {
+      if (count <= 1) return
+
+      for (let i = low; i < low + count; i++) {
+        this.updateBar(bars, A[i], i, RED, N)
+      }
+      await new Promise(res => setTimeout(res, time))
+
+      const k = count / 2
+      for (let i = low; i < low + k; i++) {
+        this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
+        this.updateBar(bars, A[i + k], i + k, LIGHT_BLUE, N)
+        await new Promise(res => setTimeout(res, time))
+
+        if ((A[i] > A[i + k]) === isAscending) {
+          const temp = A[i]
+          A[i] = A[i + k]
+          A[i + k] = temp
+
+          this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
+          this.updateBar(bars, A[i + k], i + k, LIGHT_BLUE, N)
+          await new Promise(res => setTimeout(res, time))
+        }
+
+        this.updateBar(bars, A[i], i, RED, N)
+        this.updateBar(bars, A[i + k], i + k, RED, N)
+        await new Promise(res => setTimeout(res, time))
+      }
+
+      for (let i = low; i < low + count; i++) {
+        this.updateBar(bars, A[i], i, BLUE, N)
+      }
+      await new Promise(res => setTimeout(res, time))
+
+      await bitonicMerge(low, k, isAscending)
+      await bitonicMerge(low + k, k, isAscending)
+    }
+
+    const isLoggable = n => {
+      while (n > 1) {
+        if (n % 2 === 0) {
+          n >>= 1
+        } else {
+          return false
+        }
+      }
+      return true
+    }
+
+    if (isLoggable(N)) {
+      await helper(0, N, true)
+      return false
+    } else {
+      alert('Number of elements must be a power of 2!')
+      this.isSorting = false
+      return true
+    }
+  }
+
+  bogoSort = async (bars, A, N, time) => {
     const permutation = (bank, arr) => {
       if (bank.length === 0) return [arr]
 
@@ -175,9 +250,7 @@ export default class SortingVisualizer extends Component {
       }
       return true
     }
-
     try {
-      this.resetBars(bars, N)
       const perms = permutation(A, [])
 
       for (let i = 0; i < perms.length; i++) {
@@ -188,21 +261,15 @@ export default class SortingVisualizer extends Component {
         if (isSorted(perms[i])) break
       }
 
-      this.finalizeBars(bars, N)
+      return false
     } catch (err) {
       alert(err)
       this.isSorting = false
+      return true
     }
   }
 
-  bubbleSort = async () => {
-    const bars = this.state.bars.slice()
-    const A = bars.map(bar => bar.props.num)
-    const N = this.state.value
-    const time = this.time(N)
-
-    this.resetBars(bars, N)
-
+  bubbleSort = async (bars, A, N, time) => {
     for (let i = N - 1; i > 0; i--) {
       let isSorted = true
       for (let j = 0; j < i; j++) {
@@ -229,18 +296,9 @@ export default class SortingVisualizer extends Component {
       }
       if (isSorted) break
     }
-
-    this.finalizeBars(bars, N)
   }
 
-  cocktailSort = async () => {
-    const bars = this.state.bars.slice()
-    const A = bars.map(bar => bar.props.num)
-    const N = this.state.value
-    const time = this.time(N)
-
-    this.resetBars(bars, N)
-
+  cocktailSort = async (bars, A, N, time) => {
     for (let start = 0, end = N - 1; start < end; start++) {
       let startSorted = true
       let endSorted = true
@@ -295,18 +353,44 @@ export default class SortingVisualizer extends Component {
 
       if (startSorted || endSorted) break
     }
-
-    this.finalizeBars(bars, N)
   }
 
-  insertionSort = async () => {
-    const bars = this.state.bars.slice()
-    const A = bars.map(bar => bar.props.num)
-    const N = this.state.value
-    const time = this.time(N)
+  gnomeSort = async (bars, A, N, time) => {
+    let i = 0
+    while (i < N) {
+      this.updateBar(bars, A[i], i, RED, N)
+      if (i !== 0) {
+        this.updateBar(bars, A[i - 1], i - 1, RED, N)
+      }
+      await new Promise(res => setTimeout(res, time))
 
-    this.resetBars(bars, N)
+      if (i === 0 || A[i] >= A[i - 1]) {
+        this.updateBar(bars, A[i], i, BLUE, N)
+        if (i !== 0) {
+          this.updateBar(bars, A[i - 1], i - 1, BLUE, N)
+        }
+        await new Promise(res => setTimeout(res, time))
 
+        i++
+      } else {
+        const temp = A[i]
+        A[i] = A[i - 1]
+        A[i - 1] = temp
+
+        this.updateBar(bars, A[i], i, RED, N)
+        this.updateBar(bars, A[i - 1], i - 1, RED, N)
+        await new Promise(res => setTimeout(res, time))
+
+        this.updateBar(bars, A[i], i, BLUE, N)
+        this.updateBar(bars, A[i - 1], i - 1, BLUE, N)
+        await new Promise(res => setTimeout(res, time))
+
+        i--
+      }
+    }
+  }
+
+  insertionSort = async (bars, A, N, time) => {
     for (let i = 1; i < N; i++) {
       for (let j = i; j > 0; j--) {
         let isSorted = true
@@ -334,16 +418,10 @@ export default class SortingVisualizer extends Component {
         if (isSorted) break
       }
     }
-
-    this.finalizeBars(bars, N)
   }
 
-  mergeSort = async () => {
-    const bars = this.state.bars.slice()
-    const A = bars.map(bar => bar.props.num)
+  mergeSort = async (bars, A, N, time) => {
     const I = A.map((_, i) => i)
-    const N = this.state.value
-    const time = this.time(N)
 
     const helper = async (arr, indices) => {
       if (arr.length === 1) return arr
@@ -394,17 +472,10 @@ export default class SortingVisualizer extends Component {
       return arr
     }
 
-    this.resetBars(bars, N)
     await helper(A, I)
-    this.finalizeBars(bars, N)
   }
 
-  quickSort = async () => {
-    const bars = this.state.bars.slice()
-    const A = bars.map(bar => bar.props.num)
-    const N = this.state.value
-    const time = this.time(N)
-
+  quickSort = async (bars, A, N, time) => {
     const helper = async (l, h) => {
       if (l < h) {
         const pivot = await partition(l, h)
@@ -499,19 +570,45 @@ export default class SortingVisualizer extends Component {
       return j
     }
 
-    this.resetBars(bars, N)
     await helper(0, N)
-    this.finalizeBars(bars, N)
   }
 
-  selectionSort = async () => {
-    const bars = this.state.bars.slice()
-    const A = bars.map(bar => bar.props.num)
-    const N = this.state.value
-    const time = this.time(N)
+  radixSort = async (bars, A, N, time) => {
+    const max = A.reduce((curr, prev) => curr > prev ? curr : prev)
 
-    this.resetBars(bars, N)
+    for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
+      const count = new Array(10).fill(0)
+      const output = new Array(N)
 
+      for (let i = 0; i < N; i++) {
+        const digit = Math.floor(A[i] / exp) % 10
+        count[digit]++
+      }
+
+      for (let i = 1; i < 10; i++) {
+        count[i] += count[i - 1]
+      }
+
+      for (let i = N - 1; i >= 0; i--) {
+        const digit = Math.floor(A[i] / exp) % 10
+        output[count[digit] - 1] = A[i]
+        count[digit]--
+      }
+
+      for (let i = 0; i < N; i++) {
+        this.updateBar(bars, A[i], i, RED, N)
+        await new Promise(res => setTimeout(res, time))
+
+        A[i] = output[i]
+        this.updateBar(bars, A[i], i, RED, N)
+        await new Promise(res => setTimeout(res, time))
+
+        this.updateBar(bars, A[i], i, BLUE, N)
+      }
+    }
+  }
+
+  selectionSort = async (bars, A, N, time) => {
     for (let i = 0; i < N - 1; i++) {
       let min = i
 
@@ -555,18 +652,9 @@ export default class SortingVisualizer extends Component {
       }
       await new Promise(res => setTimeout(res, time))
     }
-
-    this.finalizeBars(bars, N)
   }
 
-  shellSort = async () => {
-    const bars = this.state.bars.slice()
-    const A = bars.map(bar => bar.props.num)
-    const N = this.state.value
-    const time = this.time(N)
-
-    this.resetBars(bars, N)
-
+  shellSort = async (bars, A, N, time) => {
     for (let gap = Math.floor(N / 2); gap > 0; gap = Math.floor(gap / 2)) {
       for (let i = gap; i < N; i++) {
         for (let j = i - gap; j >= 0; j -= gap) {
@@ -595,204 +683,6 @@ export default class SortingVisualizer extends Component {
           if (isSorted) break
         }
       }
-    }
-
-    this.finalizeBars(bars, N)
-  }
-
-  gnomeSort = () => {
-    const bars = this.state.bars.slice()
-    const nums = bars.map(bar => bar.props.num)
-    const n = bars.length
-    const value = this.state.value
-    let time = 0
-
-    let i = 0
-    let barIdx = 0
-    while (i < n) {
-      let currNum, nextNum
-      setTimeout(() => {
-        currNum = bars[barIdx].props.num
-        this.updateBar(bars, currNum, barIdx, RED, value)
-
-        if (barIdx !== 0) {
-          nextNum = bars[barIdx - 1].props.num
-          this.updateBar(bars, nextNum, barIdx - 1, RED, value)
-        }
-      }, time)
-      time += this.time(n)
-
-      if (i === 0 || nums[i] >= nums[i - 1]) {
-        setTimeout(() => {
-          this.updateBar(bars, currNum, barIdx, BLUE, value)
-
-          if (barIdx !== 0) {
-            this.updateBar(bars, nextNum, barIdx - 1, BLUE, value)
-          }
-
-          barIdx++
-        }, time)
-        time += this.time(n)
-        i++
-      } else {
-        setTimeout(() => {
-          [currNum, nextNum] = [nextNum, currNum]
-          this.updateBars(bars, currNum, nextNum, barIdx, barIdx - 1, RED, value)
-        }, time)
-        time += this.time(n)
-
-        setTimeout(() => {
-          this.updateBars(bars, currNum, nextNum, barIdx, barIdx - 1, BLUE, value)
-          barIdx--
-        }, time)
-        time += this.time(n)
-
-        const temp = nums[i]
-        nums[i] = nums[i - 1]
-        nums[i - 1] = temp
-        i--
-      }
-    }
-
-    setTimeout(() => this.finalizeBars(), time)
-  }
-
-  radixSort = () => {
-    const bars = this.state.bars.slice()
-    const nums = bars.map(bar => bar.props.num)
-    const n = bars.length
-    const value = this.state.value
-    let time = 0
-
-    const max = nums.reduce((m, curr) => m > curr ? m : curr)
-
-    for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
-      const count = new Array(10).fill(0)
-      const output = new Array(n)
-
-      for (let i = 0; i < n; i++) {
-        const digit = Math.floor(nums[i] / exp) % 10
-        count[digit]++
-      }
-
-      for (let i = 1; i < 10; i++) {
-        count[i] += count[i - 1]
-      }
-
-      for (let i = n - 1; i >= 0; i--) {
-        const digit = Math.floor(nums[i] / exp) % 10
-        output[count[digit] - 1] = nums[i]
-        count[digit]--
-      }
-
-      for (let i = 0; i < n; i++) {
-        let currNum
-        setTimeout(() => {
-          currNum = bars[i].props.num
-          this.updateBar(bars, currNum, i, RED, value)
-        }, time)
-        time += this.time(n)
-
-        setTimeout(() => {
-          currNum = output[i]
-          this.updateBar(bars, currNum, i, RED, value)
-        }, time)
-        time += this.time(n)
-
-        setTimeout(() => this.updateBar(bars, currNum, i, BLUE, value), time)
-        time += this.time(n)
-
-        nums[i] = output[i]
-      }
-    }
-
-    setTimeout(() => this.finalizeBars(), time)
-  }
-
-  bitonicSort = () => {
-    const bars = this.state.bars.slice()
-    const nums = bars.map(bar => bar.props.num)
-    const n = bars.length
-    const value = this.state.value
-    let time = 0
-
-    const helper = (low, count, isAscending) => {
-      if (count > 1) {
-        const k = count / 2
-        helper(low, k, true)
-        helper(low + k, k, false)
-        bitonicMerge(low, count, isAscending)
-      }
-    }
-
-    const bitonicMerge = (low, count, isAscending) => {
-      if (count > 1) {
-        setTimeout(() => {
-          for (let i = low; i < low + count; i++) {
-            const currNum = bars[i].props.num
-            this.updateBar(bars, currNum, i, RED, value)
-          }
-        }, time)
-        time += this.time(n)
-
-        const k = count / 2
-        for (let i = low; i < low + k; i++) {
-          let currNum, nextNum
-          setTimeout(() => {
-            currNum = bars[i].props.num
-            nextNum = bars[i + k].props.num
-            this.updateBars(bars, currNum, nextNum, i, i + k, LIGHT_BLUE, value)
-          }, time)
-          time += this.time(n)
-
-          setTimeout(() => {
-            if (currNum > nextNum === isAscending) {
-              [currNum, nextNum] = [nextNum, currNum]
-              this.updateBars(bars, currNum, nextNum, i, i + k, LIGHT_BLUE, value)
-            }
-          }, time)
-          time += this.time(n, nums[i] > nums[i + k] === isAscending)
-
-          setTimeout(() => this.updateBars(bars, currNum, nextNum, i, i + k, RED, value), time)
-          time += this.time(n)
-
-          if (nums[i] > nums[i + k] === isAscending) {
-            const temp = nums[i]
-            nums[i] = nums[i + k]
-            nums[i + k] = temp
-          }
-        }
-
-        setTimeout(() => {
-          for (let i = low; i < low + count; i++) {
-            const currNum = bars[i].props.num
-            this.updateBar(bars, currNum, i, BLUE, value)
-          }
-        }, time)
-        time += this.time(n)
-
-        bitonicMerge(low, k, isAscending)
-        bitonicMerge(low + k, k, isAscending)
-      }
-    }
-
-    const isLoggable = num => {
-      while (num > 1) {
-        if (num % 2 === 0) {
-          num >>= 1
-        } else {
-          return false
-        }
-      }
-      return true
-    }
-
-    if (isLoggable(value)) {
-      helper(0, n, true)
-      setTimeout(() => this.finalizeBars(), time)
-    } else {
-      alert('Number of elements must be a power of 2!')
-      this.isSorting = false
     }
   }
 
