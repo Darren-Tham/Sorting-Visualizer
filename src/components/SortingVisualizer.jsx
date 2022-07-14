@@ -8,7 +8,7 @@ const LIGHT_BLUE = '#bbfaf8'
 const RED = '#ff9494'
 const GREEN = '#b3ffc3'
 const PURPLE = '#e3c7ff'
-const DURATION = 5000
+const DURATION = 500
 
 export default class SortingVisualizer extends Component {
   constructor(props) {
@@ -221,6 +221,66 @@ export default class SortingVisualizer extends Component {
     this.finalizeBars(bars, N)
   }
 
+  mergeSort = async () => {
+    const bars = this.state.bars.slice()
+    const A = bars.map(bar => bar.props.num)
+    const I = A.map((_, i) => i)
+    const N = this.state.value
+
+    const helper = async (arr, indices) => {
+      if (arr.length === 1) return arr
+
+      const m = Math.floor(arr.length / 2)
+      const l = await helper(arr.slice(0, m), indices.slice(0, m))
+      const r = await helper(arr.slice(m), indices.slice(m))
+      return merge(l, r, indices)
+    }
+
+    const merge = async (l, r, indices) => {
+      const unsortedArr = l.concat(r)
+
+      for (let i = 0; i < indices.length; i++) {
+        this.updateBar(bars, unsortedArr[i], indices[i], RED, N)
+      }
+      await new Promise(res => setTimeout(res, this.time(N)))
+
+      const arr = []
+
+      while (l.length !== 0 && r.length !== 0) {
+        if (l[0] > r[0]) {
+          arr.push(r.shift())
+        } else {
+          arr.push(l.shift())
+        }
+      }
+
+      while (l.length !== 0) {
+        arr.push(l.shift())
+      }
+
+      while (r.length !== 0) {
+        arr.push(r.shift())
+      }
+
+      for (let i = 0; i < indices.length; i++) {
+        if (A[indices[i]] !== arr[i]) {
+          this.updateBar(bars, arr[i], indices[i], RED, N)
+          A[indices[i]] = arr[i]
+          await new Promise(res => setTimeout(res, this.time(N)))
+        }
+
+        this.updateBar(bars, arr[i], indices[i], BLUE, N)
+        await new Promise(res => setTimeout(res, this.time(N)))
+      }
+
+      return arr
+    }
+
+    this.resetBars(bars, N)
+    await helper(A, I)
+    this.finalizeBars(bars, N)
+  }
+
   selectionSort = async () => {
     const bars = this.state.bars.slice()
     const A = bars.map(bar => bar.props.num)
@@ -273,97 +333,6 @@ export default class SortingVisualizer extends Component {
     }
 
     this.finalizeBars(bars, N)
-  }
-
-  mergeSort = () => {
-    const bars = this.state.bars.slice()
-    const nums = bars.map(bar => bar.props.num)
-    const indices = nums.map((_, idx) => idx)
-    const n = bars.length
-    const value = this.state.value
-    let time = 0
-
-    const helper = (A, I) => {
-      if (A.length === 1) {
-        return A
-      }
-
-      const mid = Math.floor(A.length / 2)
-      const left = helper(A.slice(0, mid), I.slice(0, mid))
-      const right = helper(A.slice(mid), I.slice(mid))
-
-      mergeVisualizer(left.slice(), right.slice(), I)
-      return merge(left, right)
-    }
-
-    const merge = (left, right) => {
-      const A = []
-
-      while (left.length !== 0 && right.length !== 0) {
-        if (left[0] > right[0]) {
-          A.push(right.shift())
-        } else {
-          A.push(left.shift())
-        }
-      }
-
-      while (left.length !== 0) {
-        A.push(left.shift())
-      }
-
-      while (right.length !== 0) {
-        A.push(right.shift())
-      }
-
-      return A
-    }
-
-    const mergeVisualizer = (left, right, currIndices) => {
-      setTimeout(() => {
-        const unsortedArr = left.concat(right)
-        const A = []
-
-        while (left.length !== 0 && right.length !== 0) {
-          if (left[0] > right[0]) {
-            A.push(right.shift())
-          } else {
-            A.push(left.shift())
-          }
-        }
-
-        while (left.length !== 0) {
-          A.push(left.shift())
-        }
-
-        while (right.length !== 0) {
-          A.push(right.shift())
-        }
-
-        let swapTime = this.time(n)
-
-        // Highlight all bars in the current indices
-        setTimeout(() => {
-          for (let i = 0; i < currIndices.length; i++) {
-            this.updateBar(bars, unsortedArr[i], currIndices[i], RED, value)
-          }
-        }, swapTime)
-        swapTime += this.time(n)
-
-        for (let i = 0; i < currIndices.length; i++) {
-          // Place the sorted number in the correct position
-          setTimeout(() => this.updateBar(bars, A[i], currIndices[i], RED, value), swapTime)
-          swapTime += this.time(n)
-
-          // Change the color back
-          setTimeout(() => this.updateBar(bars, A[i], currIndices[i], BLUE, value), swapTime)
-          swapTime += this.time(n)
-        }
-      }, time)
-      time += (2 + 2 * currIndices.length) * this.time(n)
-    }
-
-    helper(nums, indices)
-    setTimeout(() => this.finalizeBars(), time)
   }
 
   quickSort = () => {
