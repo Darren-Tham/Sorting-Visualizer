@@ -1,3 +1,4 @@
+import { toBeEmpty } from '@testing-library/jest-dom/dist/matchers'
 import React, { Component } from 'react'
 import Bar from './Bar'
 import TextContainer from './TextContainer'
@@ -8,7 +9,7 @@ const LIGHT_BLUE = '#bbfaf8'
 const RED = '#ff9494'
 const GREEN = '#b3ffc3'
 const PURPLE = '#e3c7ff'
-const TIME = 500
+const DURATION = 500
 
 export default class SortingVisualizer extends Component {
   constructor(props) {
@@ -72,7 +73,7 @@ export default class SortingVisualizer extends Component {
         bars[i] = this.createBar(num, i, GREEN, N)
         this.setState({ bars })
       }, time)
-      time += this.incrementTime(N)
+      time += this.time(N)
     })
 
     setTimeout(() => this.isSorting = false, time)
@@ -144,21 +145,21 @@ export default class SortingVisualizer extends Component {
 
   // Sorting Functions
 
-  incrementTime = (n, b = true) => {
-    return b ? TIME / n : 0
-  }
+  time = N => DURATION / N
 
   bubbleSort = async () => {
     const bars = this.state.bars.slice()
     const A = bars.map(bar => bar.props.num)
     const N = this.state.value
 
+    this.resetBars(bars, N)
+
     for (let i = N - 1; i > 0; i--) {
       let isSorted = true
       for (let j = 0; j < i; j++) {
         this.updateBar(bars, A[j], j, RED, N)
         this.updateBar(bars, A[j + 1], j + 1, RED, N)
-        await new Promise(resolve => setTimeout(resolve, this.incrementTime(N)))
+        await new Promise(res => setTimeout(res, this.time(N)))
 
 
         if (A[j] > A[j + 1]) {
@@ -170,12 +171,12 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, A[j + 1], j + 1, RED, N)
 
           isSorted = false
-          await new Promise(resolve => setTimeout(resolve, this.incrementTime(N)))
+          await new Promise(res => setTimeout(res, this.time(N)))
         }
 
         this.updateBar(bars, A[j], j, BLUE, N)
         this.updateBar(bars, A[j + 1], j + 1, BLUE, N)
-        await new Promise(resolve => setTimeout(resolve, this.incrementTime(N)))
+        await new Promise(res => setTimeout(res, this.time(N)))
       }
       if (isSorted) break      
     }
@@ -183,49 +184,42 @@ export default class SortingVisualizer extends Component {
     this.finalizeBars(bars, N)
   }
 
-  insertionSort = () => {
+  insertionSort = async () => {
     const bars = this.state.bars.slice()
-    const nums = bars.map(bar => bar.props.num)
-    const A = nums.slice()
+    const A = bars.map(bar => bar.props.num)
     const N = this.state.value
-    let time = 0
 
     this.resetBars(bars, N)
 
     for (let i = 1; i < N; i++) {
       for (let j = i; j > 0; j--) {
-        setTimeout(() => {
-          this.updateBar(bars, nums[j], j, RED, N)
-          this.updateBar(bars, nums[j - 1], j - 1, RED, N)
-        }, time)
-        time += this.incrementTime(N)
-
-        setTimeout(() => {
-          if (nums[j - 1] > nums[j]) {
-            const temp = nums[j - 1]
-            nums[j - 1] = nums[j]
-            nums[j] = temp
-            this.updateBar(bars, nums[j], j, RED, N)
-            this.updateBar(bars, nums[j - 1], j - 1, RED, N)
-          }
-        }, time)
-        time += this.incrementTime(N, A[j - 1] > A[j])
-
-        setTimeout(() => {
-          this.updateBar(bars, nums[j], j, BLUE, N)
-          this.updateBar(bars, nums[j - 1],j - 1, BLUE, N)
-        }, time)
-        time += this.incrementTime(N)
-
+        let isSorted = true
+        
+        this.updateBar(bars, A[j], j, RED, N)
+        this.updateBar(bars, A[j - 1], j - 1, RED, N)
+        await new Promise(res => setTimeout(res, this.time(N)))
+        
         if (A[j - 1] > A[j]) {
-          const temp = A[j]
-          A[j] = A[j - 1]
-          A[j - 1] = temp
-        } else break
+          const temp = A[j - 1]
+          A[j - 1] = A[j]
+          A[j] = temp
+
+          this.updateBar(bars, A[j], j, RED, N)
+          this.updateBar(bars, A[j - 1], j - 1, RED, N)
+
+          isSorted = false
+          await new Promise(res => setTimeout(res, this.time(N)))
+        }
+
+        this.updateBar(bars, A[j], j, BLUE, N)
+        this.updateBar(bars, A[j - 1], j - 1, BLUE, N)
+        await new Promise(res => setTimeout(res, this.time(N)))
+
+        if (isSorted) break
       }
     }
 
-    setTimeout(() => this.finalizeBars(bars, N), time)
+    this.finalizeBars(bars, N)
   }
 
   selectionSort = () => {
@@ -241,11 +235,11 @@ export default class SortingVisualizer extends Component {
       let min = i
 
       setTimeout(() => this.updateBar(bars, nums[i], i, PURPLE, N), time)
-      time += this.incrementTime(N)
+      time += this.time(N)
 
       for (let j = i + 1; j < N; j++) {
         setTimeout(() => this.updateBar(bars, nums[j], j, RED, N), time)
-        time += this.incrementTime(N)
+        time += this.time(N)
 
         setTimeout(() => {
           if (nums[j] < nums[min]) {
@@ -259,7 +253,7 @@ export default class SortingVisualizer extends Component {
             this.updateBar(bars, nums[j], j, BLUE, N)
           }
         }, time)
-        time += this.incrementTime(N)
+        time += this.time(N)
 
         if (A[j] < A[min]) {
           min = j
@@ -279,15 +273,15 @@ export default class SortingVisualizer extends Component {
             nums[min] = temp
             this.updateBar(bars, nums[i], i, RED, N)
             this.updateBar(bars, nums[min], min, RED, N)
-          }, this.incrementTime(N))
+          }, this.time(N))
 
           setTimeout(() => {
             this.updateBar(bars, nums[i], i, BLUE, N)
             this.updateBar(bars, nums[min], min, BLUE, N)
-          }, this.incrementTime(N) * 2)
+          }, this.time(N) * 2)
         }
       }, time)
-      time += this.incrementTime(N) * 3
+      time += this.time(N) * 3
 
       if (min !== i) {
         const temp = A[i]
@@ -363,7 +357,7 @@ export default class SortingVisualizer extends Component {
           A.push(right.shift())
         }
 
-        let swapTime = this.incrementTime(n)
+        let swapTime = this.time(n)
 
         // Highlight all bars in the current indices
         setTimeout(() => {
@@ -371,19 +365,19 @@ export default class SortingVisualizer extends Component {
             this.updateBar(bars, unsortedArr[i], currIndices[i], RED, value)
           }
         }, swapTime)
-        swapTime += this.incrementTime(n)
+        swapTime += this.time(n)
 
         for (let i = 0; i < currIndices.length; i++) {
           // Place the sorted number in the correct position
           setTimeout(() => this.updateBar(bars, A[i], currIndices[i], RED, value), swapTime)
-          swapTime += this.incrementTime(n)
+          swapTime += this.time(n)
 
           // Change the color back
           setTimeout(() => this.updateBar(bars, A[i], currIndices[i], BLUE, value), swapTime)
-          swapTime += this.incrementTime(n)
+          swapTime += this.time(n)
         }
       }, time)
-      time += (2 + 2 * currIndices.length) * this.incrementTime(n)
+      time += (2 + 2 * currIndices.length) * this.time(n)
     }
 
     helper(nums, indices)
@@ -422,7 +416,7 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, barNum, idx, RED, value)
         }
       }, time)
-      time += this.incrementTime(n)
+      time += this.time(n)
 
       while (i < j) {
         do {
@@ -436,7 +430,7 @@ export default class SortingVisualizer extends Component {
               this.updateBar(bars, iBar, iBarIdx, LIGHT_BLUE, value)
             }
           }, time)
-          time += this.incrementTime(n, i < h)
+          time += this.time(n, i < h)
 
           // Highlight bar red if it is not greater than the pivot
           setTimeout(() => {
@@ -444,7 +438,7 @@ export default class SortingVisualizer extends Component {
               this.updateBar(bars, iBar, iBarIdx, RED, value)
             }
           }, time)
-          time += this.incrementTime(n, A[i] <= pivot && i < h)
+          time += this.time(n, A[i] <= pivot && i < h)
         } while (A[i] <= pivot)
 
         do {
@@ -458,7 +452,7 @@ export default class SortingVisualizer extends Component {
               this.updateBar(bars, jBar, jBarIdx, LIGHT_BLUE, value)
             }
           }, time)
-          time += this.incrementTime(n, j !== l && j !== i)
+          time += this.time(n, j !== l && j !== i)
 
           // Highlight bar red if it is not less than or equal to the pivot
           setTimeout(() => {
@@ -466,7 +460,7 @@ export default class SortingVisualizer extends Component {
               this.updateBar(bars, jBar, jBarIdx, RED, value)
             }
           }, time)
-          time += this.incrementTime(n, A[j] > pivot && j !== l && j !== i)
+          time += this.time(n, A[j] > pivot && j !== l && j !== i)
         } while (A[j] > pivot)
 
         // Switch bars
@@ -481,7 +475,7 @@ export default class SortingVisualizer extends Component {
           temp = A[i]
           A[i] = A[j]
           A[j] = temp
-          time += this.incrementTime(n)
+          time += this.time(n)
         }
 
         // Set bar to red
@@ -494,7 +488,7 @@ export default class SortingVisualizer extends Component {
             this.updateBar(bars, jBar, jBarIdx, RED, value)
           }
         }, time)
-        time += this.incrementTime(n, i < h || j !== l)
+        time += this.time(n, i < h || j !== l)
       }
 
       temp = A[l]
@@ -507,7 +501,7 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, jBar, jBarIdx, LIGHT_BLUE, value)
         }
       }, time)
-      time += this.incrementTime(n, j !== l)
+      time += this.time(n, j !== l)
 
       // Switch bars
       setTimeout(() => {
@@ -516,7 +510,7 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, jBar, l, LIGHT_BLUE, value)
         }
       }, time)
-      time += this.incrementTime(n, j !== l)
+      time += this.time(n, j !== l)
 
       // Change all bars back to blue
       setTimeout(() => {
@@ -525,7 +519,7 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, barNum, idx, BLUE, value)
         }
       }, time)
-      time += this.incrementTime(n)
+      time += this.time(n)
 
       return j
     }
@@ -572,7 +566,7 @@ export default class SortingVisualizer extends Component {
             this.updateBar(bars, num, idx, BLUE, value)
           })
         }, time)
-        time += this.incrementTime(n)
+        time += this.time(n)
         return isSorted(perm)
       })
 
@@ -600,7 +594,7 @@ export default class SortingVisualizer extends Component {
             nextNum = bars[j + gap].props.num
             this.updateBars(bars, currNum, nextNum, j, j + gap, RED, value)
           }, time)
-          time += this.incrementTime(n)
+          time += this.time(n)
 
           setTimeout(() => {
             if (currNum > nextNum) {
@@ -608,10 +602,10 @@ export default class SortingVisualizer extends Component {
               this.updateBars(bars, currNum, nextNum, j, j + gap, RED, value)
             }
           }, time)
-          time += this.incrementTime(n, nums[j] > nums[j + gap])
+          time += this.time(n, nums[j] > nums[j + gap])
 
           setTimeout(() => this.updateBars(bars, currNum, nextNum, j, j + gap, BLUE, value), time)
-          time += this.incrementTime(n)
+          time += this.time(n)
 
           if (nums[j] > nums[j + gap]) {
             const temp = nums[j]
@@ -643,7 +637,7 @@ export default class SortingVisualizer extends Component {
           nextNum = bars[i + 1].props.num
           this.updateBars(bars, currNum, nextNum, i, i + 1, RED, value)
         }, time)
-        time += this.incrementTime(n)
+        time += this.time(n)
 
         setTimeout(() => {
           if (currNum > nextNum) {
@@ -651,10 +645,10 @@ export default class SortingVisualizer extends Component {
             this.updateBars(bars, currNum, nextNum, i, i + 1, RED, value)
           }
         }, time)
-        time += this.incrementTime(n, nums[i] > nums[i + 1])
+        time += this.time(n, nums[i] > nums[i + 1])
 
         setTimeout(() => this.updateBars(bars, currNum, nextNum, i, i + 1, BLUE, value), time)
-        time += this.incrementTime(n)
+        time += this.time(n)
 
         if (nums[i] > nums[i + 1]) {
           temp = nums[i]
@@ -673,7 +667,7 @@ export default class SortingVisualizer extends Component {
             nextNum = bars[i - 1].props.num
             this.updateBars(bars, currNum, nextNum, i, i - 1, RED, value)
           }, time)
-          time += this.incrementTime(n)
+          time += this.time(n)
 
           setTimeout(() => {
             if (currNum < nextNum) {
@@ -681,10 +675,10 @@ export default class SortingVisualizer extends Component {
               this.updateBars(bars, currNum, nextNum, i, i - 1, RED, value)
             }
           }, time)
-          time += this.incrementTime(n, nums[i] < nums[i - 1])
+          time += this.time(n, nums[i] < nums[i - 1])
 
           setTimeout(() => this.updateBars(bars, currNum, nextNum, i, i - 1, BLUE, value), time)
-          time += this.incrementTime(n)
+          time += this.time(n)
 
           if (nums[i] < nums[i - 1]) {
             temp = nums[i]
@@ -721,7 +715,7 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, nextNum, barIdx - 1, RED, value)
         }
       }, time)
-      time += this.incrementTime(n)
+      time += this.time(n)
 
       if (i === 0 || nums[i] >= nums[i - 1]) {
         setTimeout(() => {
@@ -733,20 +727,20 @@ export default class SortingVisualizer extends Component {
 
           barIdx++
         }, time)
-        time += this.incrementTime(n)
+        time += this.time(n)
         i++
       } else {
         setTimeout(() => {
           [currNum, nextNum] = [nextNum, currNum]
           this.updateBars(bars, currNum, nextNum, barIdx, barIdx - 1, RED, value)
         }, time)
-        time += this.incrementTime(n)
+        time += this.time(n)
 
         setTimeout(() => {
           this.updateBars(bars, currNum, nextNum, barIdx, barIdx - 1, BLUE, value)
           barIdx--
         }, time)
-        time += this.incrementTime(n)
+        time += this.time(n)
 
         const temp = nums[i]
         nums[i] = nums[i - 1]
@@ -792,16 +786,16 @@ export default class SortingVisualizer extends Component {
           currNum = bars[i].props.num
           this.updateBar(bars, currNum, i, RED, value)
         }, time)
-        time += this.incrementTime(n)
+        time += this.time(n)
 
         setTimeout(() => {
           currNum = output[i]
           this.updateBar(bars, currNum, i, RED, value)
         }, time)
-        time += this.incrementTime(n)
+        time += this.time(n)
 
         setTimeout(() => this.updateBar(bars, currNum, i, BLUE, value), time)
-        time += this.incrementTime(n)
+        time += this.time(n)
 
         nums[i] = output[i]
       }
@@ -834,7 +828,7 @@ export default class SortingVisualizer extends Component {
             this.updateBar(bars, currNum, i, RED, value)
           }
         }, time)
-        time += this.incrementTime(n)
+        time += this.time(n)
 
         const k = count / 2
         for (let i = low; i < low + k; i++) {
@@ -844,7 +838,7 @@ export default class SortingVisualizer extends Component {
             nextNum = bars[i + k].props.num
             this.updateBars(bars, currNum, nextNum, i, i + k, LIGHT_BLUE, value)
           }, time)
-          time += this.incrementTime(n)
+          time += this.time(n)
 
           setTimeout(() => {
             if (currNum > nextNum === isAscending) {
@@ -852,10 +846,10 @@ export default class SortingVisualizer extends Component {
               this.updateBars(bars, currNum, nextNum, i, i + k, LIGHT_BLUE, value)
             }
           }, time)
-          time += this.incrementTime(n, nums[i] > nums[i + k] === isAscending)
+          time += this.time(n, nums[i] > nums[i + k] === isAscending)
 
           setTimeout(() => this.updateBars(bars, currNum, nextNum, i, i + k, RED, value), time)
-          time += this.incrementTime(n)
+          time += this.time(n)
 
           if (nums[i] > nums[i + k] === isAscending) {
             const temp = nums[i]
@@ -870,7 +864,7 @@ export default class SortingVisualizer extends Component {
             this.updateBar(bars, currNum, i, BLUE, value)
           }
         }, time)
-        time += this.incrementTime(n)
+        time += this.time(n)
 
         bitonicMerge(low, k, isAscending)
         bitonicMerge(low + k, k, isAscending)
@@ -922,7 +916,7 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, rBar, r, RED, value)
         }
       }, time)
-      time += this.incrementTime(n)
+      time += this.time(n)
 
       if (l < end && nums[l] > nums[max]) {
         max = l
@@ -933,7 +927,7 @@ export default class SortingVisualizer extends Component {
 
       setTimeout(() => {
         if (max !== i) {
-          let innerTime = this.incrementTime(n)
+          let innerTime = this.time(n)
           let maxBar = bars[max].props.num
           this.updateBars(bars, currBar, maxBar, i, max, LIGHT_BLUE, value)
 
@@ -941,7 +935,7 @@ export default class SortingVisualizer extends Component {
             [currBar, maxBar] = [maxBar, currBar]
             this.updateBars(bars, currBar, maxBar, i, max, LIGHT_BLUE, value)
           }, innerTime)
-          innerTime += this.incrementTime(n)
+          innerTime += this.time(n)
 
           setTimeout(() => {
             this.updateBar(bars, currBar, i, RED, value)
@@ -949,7 +943,7 @@ export default class SortingVisualizer extends Component {
           }, innerTime)
         }
       }, time)
-      time += this.incrementTime(n, max !== i) * 3
+      time += this.time(n, max !== i) * 3
 
       setTimeout(() => {
         currBar = bars[i].props.num
@@ -963,7 +957,7 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, rBar, r, BLUE, value)
         }
       }, time)
-      time += this.incrementTime(n)
+      time += this.time(n)
 
       if (max !== i) {
         const temp = nums[i]
@@ -984,18 +978,18 @@ export default class SortingVisualizer extends Component {
         lastBar = bars[i].props.num
         this.updateBars(bars, firstBar, lastBar, 0, i, RED, value)
       }, time)
-      time += this.incrementTime(n)
+      time += this.time(n)
 
       setTimeout(() => {
         [firstBar, lastBar] = [lastBar, firstBar]
         this.updateBars(bars, firstBar, lastBar, 0, i, RED, value)
       }, time)
-      time += this.incrementTime(n)
+      time += this.time(n)
 
       setTimeout(() => {
         this.updateBars(bars, firstBar, lastBar, 0, i, BLUE, value)
       }, time)
-      time += this.incrementTime(n)
+      time += this.time(n)
 
       const temp = nums[0]
       nums[0] = nums[i]
