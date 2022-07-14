@@ -8,7 +8,7 @@ const LIGHT_BLUE = '#bbfaf8'
 const RED = '#ff9494'
 const GREEN = '#b3ffc3'
 const PURPLE = '#e3c7ff'
-const TIME = 1000
+const TIME = 500
 
 export default class SortingVisualizer extends Component {
   constructor(props) {
@@ -203,39 +203,42 @@ export default class SortingVisualizer extends Component {
     const N = bars.length
     let time = 0
 
+    this.resetBars(bars, N)
+
     for (let i = 1; i < N; i++) {
-      for (let j = i; j > 0 && nums[j - 1] > nums[j]; j--) {
-        // Helps stop insertion early
-        const temp = nums[j]
-        nums[j] = nums[j - 1]
-        nums[j - 1] = temp
-
-        let currNum, prevNum
-
-        // Highlight bars
+      for (let j = i; j > 0; j--) {
         setTimeout(() => {
-          currNum = bars[j].props.num
-          prevNum = bars[j - 1].props.num
-          this.updateBars(bars, currNum, prevNum, j, j - 1, RED, N)
+          this.updateBar(bars, nums[j], j, RED, N)
+          this.updateBar(bars, nums[j - 1], j - 1, RED, N)
         }, time)
         time += this.incrementTime(N)
 
-        // Switch if not sorted
         setTimeout(() => {
-          if (prevNum > currNum) {
-            [currNum, prevNum] = [prevNum, currNum]
-            this.updateBars(bars, currNum, prevNum, j, j - 1, RED, N)
+          if (nums[j - 1] > nums[j]) {
+            const temp = nums[j - 1]
+            nums[j - 1] = nums[j]
+            nums[j] = temp
+            this.updateBar(bars, nums[j], j, RED, N)
+            this.updateBar(bars, nums[j - 1], j - 1, RED, N)
           }
         }, time)
+        time += this.incrementTime(N, A[j - 1] > A[j])
+
+        setTimeout(() => {
+          this.updateBar(bars, nums[j], j, BLUE, N)
+          this.updateBar(bars, nums[j - 1],j - 1, BLUE, N)
+        }, time)
         time += this.incrementTime(N)
 
-        // Change color back
-        setTimeout(() => this.updateBars(bars, currNum, prevNum, j, j - 1, BLUE, N), time)
-        time += this.incrementTime(N)
+        if (A[j - 1] > A[j]) {
+          const temp = A[j]
+          A[j] = A[j - 1]
+          A[j - 1] = temp
+        } else break
       }
     }
 
-    setTimeout(() => this.finalizeBars(), time)
+    setTimeout(() => this.finalizeBars(bars, N), time)
   }
 
   selectionSort = () => {
