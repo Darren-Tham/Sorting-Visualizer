@@ -133,9 +133,6 @@ export default class SortingVisualizer extends Component {
       case 'Quick Sort':
         await this.quickSort(bars, A, N)
         break
-      case 'Radix Sort':
-        await this.radixSort(bars, A, N)
-        break
       case 'Selection Sort':
         await this.selectionSort(bars, A, N)
         break
@@ -882,41 +879,6 @@ export default class SortingVisualizer extends Component {
     }
 
     await helper(0, N)
-  }
-
-  radixSort = async (bars, A, N) => {
-    const max = A.reduce((curr, prev) => curr > prev ? curr : prev)
-
-    for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
-      const count = new Array(10).fill(0)
-      const output = new Array(N)
-
-      for (let i = 0; i < N; i++) {
-        const digit = Math.floor(A[i] / exp) % 10
-        count[digit]++
-      }
-
-      for (let i = 1; i < 10; i++) {
-        count[i] += count[i - 1]
-      }
-
-      for (let i = N - 1; i >= 0; i--) {
-        const digit = Math.floor(A[i] / exp) % 10
-        output[count[digit] - 1] = A[i]
-        count[digit]--
-      }
-
-      for (let i = 0; i < N; i++) {
-        this.updateBar(bars, A[i], i, RED, N)
-        await timeout(N)
-
-        A[i] = output[i]
-        this.updateBar(bars, A[i], i, RED, N)
-        await timeout(N)
-
-        this.updateBar(bars, A[i], i, BLUE, N)
-      }
-    }
   }
 
   selectionSort = async (bars, A, N) => {

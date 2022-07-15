@@ -18,7 +18,6 @@ export default function TextContainer(props) {
         <option>Merge Sort</option>
         <option>Odd-Even Sort</option>
         <option>Quick Sort</option>
-        <option>Radix Sort</option>
         <option>Selection Sort</option>
         <option>Shell Sort</option>
       </select>
