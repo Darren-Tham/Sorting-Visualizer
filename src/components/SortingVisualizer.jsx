@@ -56,18 +56,13 @@ export default class SortingVisualizer extends Component {
     this.setState({ bars })
   }
 
-  finalizeBars = (bars, N) => {
-    let time = 0
-    bars.forEach((bar, i) => {
-      setTimeout(() => {
-        const num = bar.props.num
-        bars[i] = this.createBar(num, i, GREEN, N)
-        this.setState({ bars })
-      }, time)
-      time += this.time(N)
-    })
+  finalizeBars = async (bars, N) => {
+    for (let i = 0; i < N; i++) {
+      this.updateBar(bars, bars[i].props.num, i, GREEN, N)
+      await timeout(N)
+    }
 
-    setTimeout(() => this.isSorting = false, time)
+    this.isSorting = false
   }
 
   // Handle Functions
@@ -87,7 +82,6 @@ export default class SortingVisualizer extends Component {
     const bars = this.state.bars.slice()
     const A = bars.map(bar => bar.props.num)
     const N = this.state.value
-    const time = this.time(N)
     let isSuccessful = true
 
     this.resetBars(bars, N)
@@ -95,46 +89,46 @@ export default class SortingVisualizer extends Component {
     const dropdown = document.getElementById('dropdown')
     switch (dropdown.value) {
       case 'Bitonic Sort': {
-        const failed = await this.bitonicSort(bars, A, N, time)
+        const failed = await this.bitonicSort(bars, A, N)
         if (failed) {
           isSuccessful = false
         }
         break
       } case 'Bogo Sort': {
-        const failed = await this.bogoSort(bars, A, N, time)
+        const failed = await this.bogoSort(bars, A, N)
         if (failed) {
           isSuccessful = false
         }
         break
       } case 'Bubble Sort':
-        await this.bubbleSort(bars, A, N, time)
+        await this.bubbleSort(bars, A, N)
         break
       case 'Cocktail Sort':
-        await this.cocktailSort(bars, A, N, time)
+        await this.cocktailSort(bars, A, N)
         break
       case 'Gnome Sort':
-        await this.gnomeSort(bars, A, N, time)
+        await this.gnomeSort(bars, A, N)
         break
       case 'Heap Sort':
-        await this.heapSort(bars, A, N, time)
+        await this.heapSort(bars, A, N)
         break
       case 'Insertion Sort':
-        await this.insertionSort(bars, A, N, time)
+        await this.insertionSort(bars, A, N)
         break
       case 'Merge Sort':
-        await this.mergeSort(bars, A, N, time)
+        await this.mergeSort(bars, A, N)
         break
       case 'Quick Sort':
-        await this.quickSort(bars, A, N, time)
+        await this.quickSort(bars, A, N)
         break
       case 'Radix Sort':
-        await this.radixSort(bars, A, N, time)
+        await this.radixSort(bars, A, N)
         break
       case 'Selection Sort':
-        await this.selectionSort(bars, A, N, time)
+        await this.selectionSort(bars, A, N)
         break
       case 'Shell Sort':
-        await this.shellSort(bars, A, N, time)
+        await this.shellSort(bars, A, N)
         break
       default:
         alert("Please choose a sorting algorithm!")
@@ -143,7 +137,7 @@ export default class SortingVisualizer extends Component {
     }
 
     if (isSuccessful) {
-      this.finalizeBars(bars, N)
+      await this.finalizeBars(bars, N)
     }
   }
 
@@ -155,9 +149,7 @@ export default class SortingVisualizer extends Component {
 
   // Sorting Functions
 
-  time = N => DURATION / N
-
-  bitonicSort = async (bars, A, N, time) => {
+  bitonicSort = async (bars, A, N) => {
     const helper = async (low, count, isAscending) => {
       if (count <= 1) return
 
@@ -173,13 +165,13 @@ export default class SortingVisualizer extends Component {
       for (let i = low; i < low + count; i++) {
         this.updateBar(bars, A[i], i, RED, N)
       }
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
 
       const k = count / 2
       for (let i = low; i < low + k; i++) {
         this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
         this.updateBar(bars, A[i + k], i + k, LIGHT_BLUE, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         if ((A[i] > A[i + k]) === isAscending) {
           const temp = A[i]
@@ -188,18 +180,18 @@ export default class SortingVisualizer extends Component {
 
           this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
           this.updateBar(bars, A[i + k], i + k, LIGHT_BLUE, N)
-          await new Promise(res => setTimeout(res, time))
+          await timeout(N)
         }
 
         this.updateBar(bars, A[i], i, RED, N)
         this.updateBar(bars, A[i + k], i + k, RED, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
       }
 
       for (let i = low; i < low + count; i++) {
         this.updateBar(bars, A[i], i, BLUE, N)
       }
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
 
       await bitonicMerge(low, k, isAscending)
       await bitonicMerge(low + k, k, isAscending)
@@ -226,7 +218,7 @@ export default class SortingVisualizer extends Component {
     }
   }
 
-  bogoSort = async (bars, A, N, time) => {
+  bogoSort = async (bars, A, N) => {
     const permutation = (bank, arr) => {
       if (bank.length === 0) return [arr]
 
@@ -257,7 +249,7 @@ export default class SortingVisualizer extends Component {
         for (let j = 0; j < N; j++) {
           this.updateBar(bars, perms[i][j], j, BLUE, N)
         }
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
         if (isSorted(perms[i])) break
       }
 
@@ -269,14 +261,13 @@ export default class SortingVisualizer extends Component {
     }
   }
 
-  bubbleSort = async (bars, A, N, time) => {
+  bubbleSort = async (bars, A, N) => {
     for (let i = N - 1; i > 0; i--) {
       let isSorted = true
       for (let j = 0; j < i; j++) {
         this.updateBar(bars, A[j], j, RED, N)
         this.updateBar(bars, A[j + 1], j + 1, RED, N)
-        await new Promise(res => setTimeout(res, time))
-
+        await timeout(N)
 
         if (A[j] > A[j + 1]) {
           const temp = A[j]
@@ -287,18 +278,18 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, A[j + 1], j + 1, RED, N)
 
           isSorted = false
-          await new Promise(res => setTimeout(res, time))
+          await timeout(N)
         }
 
         this.updateBar(bars, A[j], j, BLUE, N)
         this.updateBar(bars, A[j + 1], j + 1, BLUE, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
       }
       if (isSorted) break
     }
   }
 
-  cocktailSort = async (bars, A, N, time) => {
+  cocktailSort = async (bars, A, N) => {
     for (let start = 0, end = N - 1; start < end; start++) {
       let startSorted = true
       let endSorted = true
@@ -306,7 +297,7 @@ export default class SortingVisualizer extends Component {
       for (let i = start; i < end; i++) {
         this.updateBar(bars, A[i], i, RED, N)
         this.updateBar(bars, A[i + 1], i + 1, RED, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         if (A[i] > A[i + 1]) {
           const temp = A[i]
@@ -317,12 +308,12 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, A[i + 1], i + 1, RED, N)
 
           startSorted = false
-          await new Promise(res => setTimeout(res, time))
+          await timeout(N)
         }
 
         this.updateBar(bars, A[i], i, BLUE, N)
         this.updateBar(bars, A[i + 1], i + 1, BLUE, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
       }
 
       end--
@@ -331,7 +322,7 @@ export default class SortingVisualizer extends Component {
         for (let i = end; i > start; i--) {
           this.updateBar(bars, A[i], i, RED, N)
           this.updateBar(bars, A[i - 1], i - 1, RED, N)
-          await new Promise(res => setTimeout(res, time))
+          await timeout(N)
 
           if (A[i] < A[i - 1]) {
             const temp = A[i]
@@ -342,12 +333,12 @@ export default class SortingVisualizer extends Component {
             this.updateBar(bars, A[i - 1], i - 1, RED, N)
 
             endSorted = false
-            await new Promise(res => setTimeout(res, time))
+            await timeout(N)
           }
 
           this.updateBar(bars, A[i], i, BLUE, N)
           this.updateBar(bars, A[i - 1], i - 1, BLUE, N)
-          await new Promise(res => setTimeout(res, time))
+          await timeout(N)
         }
       }
 
@@ -355,21 +346,21 @@ export default class SortingVisualizer extends Component {
     }
   }
 
-  gnomeSort = async (bars, A, N, time) => {
+  gnomeSort = async (bars, A, N) => {
     let i = 0
     while (i < N) {
       this.updateBar(bars, A[i], i, RED, N)
       if (i !== 0) {
         this.updateBar(bars, A[i - 1], i - 1, RED, N)
       }
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
 
       if (i === 0 || A[i] >= A[i - 1]) {
         this.updateBar(bars, A[i], i, BLUE, N)
         if (i !== 0) {
           this.updateBar(bars, A[i - 1], i - 1, BLUE, N)
         }
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         i++
       } else {
@@ -379,18 +370,18 @@ export default class SortingVisualizer extends Component {
 
         this.updateBar(bars, A[i], i, RED, N)
         this.updateBar(bars, A[i - 1], i - 1, RED, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         this.updateBar(bars, A[i], i, BLUE, N)
         this.updateBar(bars, A[i - 1], i - 1, BLUE, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         i--
       }
     }
   }
 
-  heapSort = async (bars, A, N, time) => {
+  heapSort = async (bars, A, N) => {
     const heapify = async (n, i) => {
       let max = i      
       const l = 2 * i + 1
@@ -415,14 +406,14 @@ export default class SortingVisualizer extends Component {
         }
       }
 
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
 
       if (max !== i) {
         iEqualsMax = false
 
         this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
         this.updateBar(bars, A[max], max, LIGHT_BLUE, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         const temp = A[max]
         A[max] = A[i]
@@ -430,12 +421,12 @@ export default class SortingVisualizer extends Component {
         
         this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
         this.updateBar(bars, A[max], max, LIGHT_BLUE, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         this.updateBar(bars, A[i], i, 
         RED, N)
         this.updateBar(bars, A[max], max, PURPLE, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
       }
 
       this.updateBar(bars, A[i], i, BLUE, N)
@@ -448,7 +439,7 @@ export default class SortingVisualizer extends Component {
         this.updateBar(bars, A[r], r, BLUE, N)
       }
 
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
 
       if (!iEqualsMax) {
         await heapify(n, max)
@@ -462,7 +453,7 @@ export default class SortingVisualizer extends Component {
     for (let i = N - 1; i > 0; i--) {
       this.updateBar(bars, A[0], 0, RED, N)
       this.updateBar(bars, A[i], i, RED, N)
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
 
       const temp = A[0]
       A[0] = A[i]
@@ -470,24 +461,24 @@ export default class SortingVisualizer extends Component {
 
       this.updateBar(bars, A[0], 0, RED, N)
       this.updateBar(bars, A[i], i, RED, N)
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
 
       this.updateBar(bars, A[0], 0, BLUE, N)
       this.updateBar(bars, A[i], i, BLUE, N)
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
 
       await heapify(i, 0)
     }
   }
 
-  insertionSort = async (bars, A, N, time) => {
+  insertionSort = async (bars, A, N) => {
     for (let i = 1; i < N; i++) {
       for (let j = i; j > 0; j--) {
         let isSorted = true
 
         this.updateBar(bars, A[j], j, RED, N)
         this.updateBar(bars, A[j - 1], j - 1, RED, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         if (A[j - 1] > A[j]) {
           const temp = A[j - 1]
@@ -498,19 +489,19 @@ export default class SortingVisualizer extends Component {
           this.updateBar(bars, A[j - 1], j - 1, RED, N)
 
           isSorted = false
-          await new Promise(res => setTimeout(res, time))
+          await timeout(N)
         }
 
         this.updateBar(bars, A[j], j, BLUE, N)
         this.updateBar(bars, A[j - 1], j - 1, BLUE, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         if (isSorted) break
       }
     }
   }
 
-  mergeSort = async (bars, A, N, time) => {
+  mergeSort = async (bars, A, N) => {
     const I = A.map((_, i) => i)
 
     const helper = async (arr, indices) => {
@@ -528,7 +519,7 @@ export default class SortingVisualizer extends Component {
       for (let i = 0; i < indices.length; i++) {
         this.updateBar(bars, unsortedArr[i], indices[i], RED, N)
       }
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
 
       const arr = []
 
@@ -552,11 +543,11 @@ export default class SortingVisualizer extends Component {
         if (A[indices[i]] !== arr[i]) {
           this.updateBar(bars, arr[i], indices[i], RED, N)
           A[indices[i]] = arr[i]
-          await new Promise(res => setTimeout(res, time))
+          await timeout(N)
         }
 
         this.updateBar(bars, arr[i], indices[i], BLUE, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
       }
 
       return arr
@@ -565,7 +556,7 @@ export default class SortingVisualizer extends Component {
     await helper(A, I)
   }
 
-  quickSort = async (bars, A, N, time) => {
+  quickSort = async (bars, A, N) => {
     const helper = async (l, h) => {
       if (l < h) {
         const pivot = await partition(l, h)
@@ -585,7 +576,7 @@ export default class SortingVisualizer extends Component {
         this.updateBar(bars, A[idx], idx, RED, N)
       }
 
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
 
       while (i < j) {
         do {
@@ -593,11 +584,11 @@ export default class SortingVisualizer extends Component {
 
           if (i !== h) {
             this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
-            await new Promise(res => setTimeout(res, time))
+            await timeout(N)
 
             if (A[i] <= pivot) {
               this.updateBar(bars, A[i], i, RED, N)
-              await new Promise(res => setTimeout(res, time))
+              await timeout(N)
             }
           }
         } while (i !== h && A[i] <= pivot)
@@ -607,11 +598,11 @@ export default class SortingVisualizer extends Component {
 
           if (j !== l && j !== i) {
             this.updateBar(bars, A[j], j, LIGHT_BLUE, N)
-            await new Promise(res => setTimeout(res, time))
+            await timeout(N)
 
             if (A[j] > pivot) {
               this.updateBar(bars, A[j], j, RED, N)
-              await new Promise(res => setTimeout(res, time))
+              await timeout(N)
             }
           }
         } while (j !== l && A[j] > pivot)
@@ -623,7 +614,7 @@ export default class SortingVisualizer extends Component {
 
           this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
           this.updateBar(bars, A[j], j, LIGHT_BLUE, N)
-          await new Promise(res => setTimeout(res, time))
+          await timeout(N)
         }
 
         if (i !== h) {
@@ -635,13 +626,13 @@ export default class SortingVisualizer extends Component {
         }
 
         if (i !== h || j !== l) {
-          await new Promise(res => setTimeout(res, time))
+          await timeout(N)
         }
       }
 
       if (j !== l) {
         this.updateBar(bars, A[j], j, LIGHT_BLUE, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         const temp = A[l]
         A[l] = A[j]
@@ -649,13 +640,13 @@ export default class SortingVisualizer extends Component {
 
         this.updateBar(bars, A[j], j, PURPLE, N)
         this.updateBar(bars, A[l], l, LIGHT_BLUE, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
       }
 
       for (let idx = l; idx < h; idx++) {
         this.updateBar(bars, A[idx], idx, BLUE, N)
       }
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
 
       return j
     }
@@ -663,7 +654,7 @@ export default class SortingVisualizer extends Component {
     await helper(0, N)
   }
 
-  radixSort = async (bars, A, N, time) => {
+  radixSort = async (bars, A, N) => {
     const max = A.reduce((curr, prev) => curr > prev ? curr : prev)
 
     for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
@@ -687,31 +678,31 @@ export default class SortingVisualizer extends Component {
 
       for (let i = 0; i < N; i++) {
         this.updateBar(bars, A[i], i, RED, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         A[i] = output[i]
         this.updateBar(bars, A[i], i, RED, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         this.updateBar(bars, A[i], i, BLUE, N)
       }
     }
   }
 
-  selectionSort = async (bars, A, N, time) => {
+  selectionSort = async (bars, A, N) => {
     for (let i = 0; i < N - 1; i++) {
       let min = i
 
       this.updateBar(bars, A[i], i, PURPLE, N)
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
 
       for (let j = i + 1; j < N; j++) {
         this.updateBar(bars, A[j], j, RED, N)
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
 
         if (A[j] < A[min]) {
           if (i === min) {
-            this.updateBar(bars, A[i], i, RED, N)
+            this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
           } else {
             this.updateBar(bars, A[min], min, BLUE, N)
           }
@@ -720,31 +711,28 @@ export default class SortingVisualizer extends Component {
         } else {
           this.updateBar(bars, A[j], j, BLUE, N)
         }
-        await new Promise(res => setTimeout(res, time))
+        await timeout(N)
       }
 
       if (i === min) {
         this.updateBar(bars, A[i], i, BLUE, N)
       } else {
-        this.updateBar(bars, A[min], min, RED, N)
-        await new Promise(res => setTimeout(res, time))
-
         const temp = A[i]
         A[i] = A[min]
         A[min] = temp
 
-        this.updateBar(bars, A[i], i, RED, N)
-        this.updateBar(bars, A[min], min, RED, N)
-        await new Promise(res => setTimeout(res, time))
+        this.updateBar(bars, A[i], i, PURPLE, N)
+        this.updateBar(bars, A[min], min, LIGHT_BLUE, N)
+        await timeout(N)
 
         this.updateBar(bars, A[i], i, BLUE, N)
         this.updateBar(bars, A[min], min, BLUE, N)
       }
-      await new Promise(res => setTimeout(res, time))
+      await timeout(N)
     }
   }
 
-  shellSort = async (bars, A, N, time) => {
+  shellSort = async (bars, A, N) => {
     for (let gap = Math.floor(N / 2); gap > 0; gap = Math.floor(gap / 2)) {
       for (let i = gap; i < N; i++) {
         for (let j = i - gap; j >= 0; j -= gap) {
@@ -752,7 +740,7 @@ export default class SortingVisualizer extends Component {
 
           this.updateBar(bars, A[j], j, RED, N)
           this.updateBar(bars, A[j + gap], j + gap, RED, N)
-          await new Promise(res => setTimeout(res, time))
+          await timeout(N)
 
           if (A[j] > A[j + gap]) {
             const temp = A[j]
@@ -763,12 +751,12 @@ export default class SortingVisualizer extends Component {
             this.updateBar(bars, A[j + gap], j + gap, RED, N)
 
             isSorted = false
-            await new Promise(res => setTimeout(res, time))
+            await timeout(N)
           }
 
           this.updateBar(bars, A[j], j, BLUE, N)
           this.updateBar(bars, A[j + gap], j + gap, BLUE, N)
-          await new Promise(res => setTimeout(res, time))
+          await timeout(N)
 
           if (isSorted) break
         }
@@ -804,5 +792,9 @@ const getSpacing = () => {
 const getMaxBarHeight = () => {
   const textContainerHeight = getComputedStyle(document.body).getPropertyValue('--text-container-height')
   return 100 - parseInt(textContainerHeight)
+}
+
+const timeout = N => {
+  return new Promise(res => setTimeout(res, DURATION / N))
 }
 
