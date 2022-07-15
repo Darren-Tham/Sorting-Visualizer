@@ -14,4 +14,4 @@ This program illustrates different sorting algorithms. This was also for me to e
 3. Sort!
 
 ## Website
-Click [here](https://darren-tham.github.io/sorting-visualizer) to view the sorting visualizer!
+Click [here](https://Darren-Tham.github.io/Sorting-Visualizer) to view the sorting visualizer!
