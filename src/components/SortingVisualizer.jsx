@@ -390,6 +390,96 @@ export default class SortingVisualizer extends Component {
     }
   }
 
+  heapSort = async (bars, A, N, time) => {
+    const heapify = async (n, i) => {
+      let max = i      
+      const l = 2 * i + 1
+      const r = l + 1
+      let iEqualsMax = true
+
+      this.updateBar(bars, A[i], i, PURPLE, N)
+
+      if (l < n) {
+        this.updateBar(bars, A[l], l, RED, N)
+        
+        if (A[l] > A[max]) {
+          max = l
+        }
+      }
+
+      if (r < n) {
+        this.updateBar(bars, A[r], r, RED, N)
+
+        if (A[r] > A[max]) {
+          max = r          
+        }
+      }
+
+      await new Promise(res => setTimeout(res, time))
+
+      if (max !== i) {
+        iEqualsMax = false
+
+        this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
+        this.updateBar(bars, A[max], max, LIGHT_BLUE, N)
+        await new Promise(res => setTimeout(res, time))
+
+        const temp = A[max]
+        A[max] = A[i]
+        A[i] = temp
+        
+        this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
+        this.updateBar(bars, A[max], max, LIGHT_BLUE, N)
+        await new Promise(res => setTimeout(res, time))
+
+        this.updateBar(bars, A[i], i, 
+        RED, N)
+        this.updateBar(bars, A[max], max, PURPLE, N)
+        await new Promise(res => setTimeout(res, time))
+      }
+
+      this.updateBar(bars, A[i], i, BLUE, N)
+
+      if (l < n) {
+        this.updateBar(bars, A[l], l, BLUE, N)
+      }
+
+      if (r < n) {
+        this.updateBar(bars, A[r], r, BLUE, N)
+      }
+
+      await new Promise(res => setTimeout(res, time))
+
+      if (!iEqualsMax) {
+        await heapify(n, max)
+      }
+    }
+
+    for (let i = Math.floor(N / 2) - 1; i >= 0; i--) {
+      await heapify(N, i)
+    }
+
+    for (let i = N - 1; i > 0; i--) {
+      this.updateBar(bars, A[0], 0, RED, N)
+      this.updateBar(bars, A[i], i, RED, N)
+      await new Promise(res => setTimeout(res, time))
+
+      const temp = A[0]
+      A[0] = A[i]
+      A[i] = temp
+
+      this.updateBar(bars, A[0], 0, RED, N)
+      this.updateBar(bars, A[i], i, RED, N)
+      await new Promise(res => setTimeout(res, time))
+
+      this.updateBar(bars, A[0], 0, BLUE, N)
+      this.updateBar(bars, A[i], i, BLUE, N)
+      await new Promise(res => setTimeout(res, time))
+
+      await heapify(i, 0)
+    }
+  }
+
   insertionSort = async (bars, A, N, time) => {
     for (let i = 1; i < N; i++) {
       for (let j = i; j > 0; j--) {
@@ -684,115 +774,6 @@ export default class SortingVisualizer extends Component {
         }
       }
     }
-  }
-
-  heapSort = () => {
-    const bars = this.state.bars.slice()
-    const nums = bars.map(bar => bar.props.num)
-    const n = bars.length
-    const value = this.state.value
-    let time = 0
-
-    const heapify = (end, i) => {
-      let max = i
-      let l = 2 * i + 1
-      let r = l + 1
-      let currBar, lBar, rBar
-
-      setTimeout(() => {
-        currBar = bars[i].props.num
-        this.updateBar(bars, currBar, i, PURPLE, value)
-        if (l < end) {
-          lBar = bars[l].props.num
-          this.updateBar(bars, lBar, l, RED, value)
-        }
-        if (r < end) {
-          rBar = bars[r].props.num
-          this.updateBar(bars, rBar, r, RED, value)
-        }
-      }, time)
-      time += this.time(n)
-
-      if (l < end && nums[l] > nums[max]) {
-        max = l
-      }
-      if (r < end && nums[r] > nums[max]) {
-        max = r
-      }
-
-      setTimeout(() => {
-        if (max !== i) {
-          let innerTime = this.time(n)
-          let maxBar = bars[max].props.num
-          this.updateBars(bars, currBar, maxBar, i, max, LIGHT_BLUE, value)
-
-          setTimeout(() => {
-            [currBar, maxBar] = [maxBar, currBar]
-            this.updateBars(bars, currBar, maxBar, i, max, LIGHT_BLUE, value)
-          }, innerTime)
-          innerTime += this.time(n)
-
-          setTimeout(() => {
-            this.updateBar(bars, currBar, i, RED, value)
-            this.updateBar(bars, maxBar, max, PURPLE, value)
-          }, innerTime)
-        }
-      }, time)
-      time += this.time(n, max !== i) * 3
-
-      setTimeout(() => {
-        currBar = bars[i].props.num
-        this.updateBar(bars, currBar, i, BLUE, value)
-        if (l < end) {
-          lBar = bars[l].props.num
-          this.updateBar(bars, lBar, l, BLUE, value)
-        }
-        if (r < end) {
-          rBar = bars[r].props.num
-          this.updateBar(bars, rBar, r, BLUE, value)
-        }
-      }, time)
-      time += this.time(n)
-
-      if (max !== i) {
-        const temp = nums[i]
-        nums[i] = nums[max]
-        nums[max] = temp
-        heapify(end, max)
-      }
-    }
-
-    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
-      heapify(n, i)
-    }
-
-    for (let i = n - 1; i > 0; i--) {
-      let firstBar, lastBar
-      setTimeout(() => {
-        firstBar = bars[0].props.num
-        lastBar = bars[i].props.num
-        this.updateBars(bars, firstBar, lastBar, 0, i, RED, value)
-      }, time)
-      time += this.time(n)
-
-      setTimeout(() => {
-        [firstBar, lastBar] = [lastBar, firstBar]
-        this.updateBars(bars, firstBar, lastBar, 0, i, RED, value)
-      }, time)
-      time += this.time(n)
-
-      setTimeout(() => {
-        this.updateBars(bars, firstBar, lastBar, 0, i, BLUE, value)
-      }, time)
-      time += this.time(n)
-
-      const temp = nums[0]
-      nums[0] = nums[i]
-      nums[i] = temp
-      heapify(i, 0)
-    }
-
-    setTimeout(() => this.finalizeBars(), time)
   }
 
   // Render Function
