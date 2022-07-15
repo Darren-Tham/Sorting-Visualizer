@@ -106,6 +106,9 @@ export default class SortingVisualizer extends Component {
       case 'Cocktail Sort':
         await this.cocktailSort(bars, A, N)
         break
+      case 'Double Selection Sort':
+        await this.doubleSelectionSort(bars, A, N)
+        break
       case 'Gnome Sort':
         await this.gnomeSort(bars, A, N)
         break
@@ -350,7 +353,87 @@ export default class SortingVisualizer extends Component {
   }
 
   doubleSelectionSort = async (bars, A, N) => {
-    
+    for (let start = 0, end = N; start < end; start++) {
+      let min = start
+
+      this.updateBar(bars, A[min], min, PURPLE, N)
+      await timeout(N)
+
+      for (let i = start + 1; i < end; i++) {
+        this.updateBar(bars, A[i], i, RED, N)
+        await timeout(N)
+
+        if (A[i] < A[min]) {
+          if (min === start) {
+            this.updateBar(bars, A[min], min, LIGHT_BLUE, N)
+          } else {
+            this.updateBar(bars, A[min], min, BLUE, N)
+          }
+          this.updateBar(bars, A[i], i, PURPLE, N)
+          min = i
+        } else {
+          this.updateBar(bars, A[i], i, BLUE, N)
+        }
+        await timeout(N)
+      }
+
+      if (start === min) {
+        this.updateBar(bars, A[start], start, BLUE, N)
+      } else {
+        const temp = A[start]
+        A[start] = A[min]
+        A[min] = temp
+
+        this.updateBar(bars, A[start], start, PURPLE, N)
+        this.updateBar(bars, A[min], min, LIGHT_BLUE, N)
+        await timeout(N)
+
+        this.updateBar(bars, A[start], start, BLUE, N)
+        this.updateBar(bars, A[min], min, BLUE, N)
+      }
+      await timeout(N)
+
+      end--
+
+      let max = end
+
+      this.updateBar(bars, A[max], max, PURPLE, N)
+      await timeout(N)
+
+      for (let i = end - 1; i > start; i--) {
+        this.updateBar(bars, A[i], i, RED, N)
+        await timeout(N)
+
+        if (A[i] > A[max]) {
+          if (max === end) {
+            this.updateBar(bars, A[max], max, LIGHT_BLUE, N)
+          } else {
+            this.updateBar(bars, A[max], max, BLUE, N)
+          }
+          this.updateBar(bars, A[i], i, PURPLE, N)
+          max = i
+        } else {
+          this.updateBar(bars, A[i], i, BLUE, N)
+        }
+        await timeout(N)
+      }
+
+      if (end === max) {
+        this.updateBar(bars, A[end], end, BLUE, N)
+      } else {
+        const temp = A[end]
+        A[end] = A[max]
+        A[max] = temp
+
+        this.updateBar(bars, A[end], end, PURPLE, N)
+        this.updateBar(bars, A[max], max, LIGHT_BLUE, N)
+        await timeout(N)
+
+        this.updateBar(bars, A[end], end, BLUE, N)
+        this.updateBar(bars, A[max], max, BLUE, N)
+      }
+      await timeout(N)
+    }
   }
 
   gnomeSort = async (bars, A, N) => {
