@@ -1,6 +1,6 @@
 # Sorting Visualizer
 ## Introduction
-This program illustrates different sorting algorithms. This was also forme to experience with React.js.
+This program illustrates different sorting algorithms. This was also for me to experience with React.js.
 <p align="center">
   <img src="https://cdn.discordapp.com/attachments/704606226553634932/997335895575367730/Screen_Shot_2022-07-14_at_10.54.23_PM.png">
 </p>
