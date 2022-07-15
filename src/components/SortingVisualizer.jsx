@@ -118,6 +118,9 @@ export default class SortingVisualizer extends Component {
       case 'Merge Sort':
         await this.mergeSort(bars, A, N)
         break
+      case 'Odd-Even Sort':
+        await this.oddEvenSort(bars, A, N)
+        break
       case 'Quick Sort':
         await this.quickSort(bars, A, N)
         break
@@ -346,6 +349,10 @@ export default class SortingVisualizer extends Component {
     }
   }
 
+  doubleSelectionSort = async (bars, A, N) => {
+    
+  }
+
   gnomeSort = async (bars, A, N) => {
     let i = 0
     while (i < N) {
@@ -383,7 +390,7 @@ export default class SortingVisualizer extends Component {
 
   heapSort = async (bars, A, N) => {
     const heapify = async (n, i) => {
-      let max = i      
+      let max = i
       const l = 2 * i + 1
       const r = l + 1
       let iEqualsMax = true
@@ -392,7 +399,7 @@ export default class SortingVisualizer extends Component {
 
       if (l < n) {
         this.updateBar(bars, A[l], l, RED, N)
-        
+
         if (A[l] > A[max]) {
           max = l
         }
@@ -402,7 +409,7 @@ export default class SortingVisualizer extends Component {
         this.updateBar(bars, A[r], r, RED, N)
 
         if (A[r] > A[max]) {
-          max = r          
+          max = r
         }
       }
 
@@ -418,13 +425,13 @@ export default class SortingVisualizer extends Component {
         const temp = A[max]
         A[max] = A[i]
         A[i] = temp
-        
+
         this.updateBar(bars, A[i], i, LIGHT_BLUE, N)
         this.updateBar(bars, A[max], max, LIGHT_BLUE, N)
         await timeout(N)
 
-        this.updateBar(bars, A[i], i, 
-        RED, N)
+        this.updateBar(bars, A[i], i,
+          RED, N)
         this.updateBar(bars, A[max], max, PURPLE, N)
         await timeout(N)
       }
@@ -554,6 +561,62 @@ export default class SortingVisualizer extends Component {
     }
 
     await helper(A, I)
+  }
+
+  oddEvenSort = async (bars, A, N) => {
+    let oddSorted = false
+    let evenSorted = false
+
+    while (!oddSorted && !evenSorted) {
+      oddSorted = true
+      evenSorted = true
+
+      for (let i = 1; i < N - 1; i += 2) {
+        this.updateBar(bars, A[i], i, RED, N)
+        this.updateBar(bars, A[i + 1], i + 1, RED, N)
+        await timeout(N)
+
+        if (A[i] > A[i + 1]) {
+          const temp = A[i]
+          A[i] = A[i + 1]
+          A[i + 1] = temp
+
+          this.updateBar(bars, A[i], i, RED, N)
+          this.updateBar(bars, A[i + 1], i + 1, RED, N)
+
+          oddSorted = false
+          await timeout(N)
+        }
+
+        this.updateBar(bars, A[i], i, BLUE, N)
+        this.updateBar(bars, A[i + 1], i + 1, BLUE, N)
+        await timeout(N)
+      }
+
+      if (!oddSorted) {
+        for (let i = 0; i < N - 1; i += 2) {
+          this.updateBar(bars, A[i], i, RED, N)
+          this.updateBar(bars, A[i + 1], i + 1, RED, N)
+          await timeout(N)
+
+          if (A[i] > A[i + 1]) {
+            const temp = A[i]
+            A[i] = A[i + 1]
+            A[i + 1] = temp
+
+            this.updateBar(bars, A[i], i, RED, N)
+            this.updateBar(bars, A[i + 1], i + 1, RED, N)
+
+            evenSorted = false
+            await timeout(N)
+          }
+
+          this.updateBar(bars, A[i], i, BLUE, N)
+          this.updateBar(bars, A[i + 1], i + 1, BLUE, N)
+          await timeout(N)
+        }
+      }
+    }
   }
 
   quickSort = async (bars, A, N) => {
@@ -794,7 +857,5 @@ const getMaxBarHeight = () => {
   return 100 - parseInt(textContainerHeight)
 }
 
-const timeout = N => {
-  return new Promise(res => setTimeout(res, DURATION / N))
-}
+const timeout = N => new Promise(res => setTimeout(res, DURATION / N))
 
