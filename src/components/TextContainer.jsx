@@ -13,6 +13,7 @@ export default function TextContainer(props) {
         <option>Gnome Sort</option>
         <option>Heap Sort</option>
         <option>Insertion Sort</option>
+        <option>Max Sort</option>
         <option>Merge Sort</option>
         <option>Odd-Even Sort</option>
         <option>Quick Sort</option>

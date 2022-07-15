@@ -118,6 +118,9 @@ export default class SortingVisualizer extends Component {
       case 'Insertion Sort':
         await this.insertionSort(bars, A, N)
         break
+      case 'Max Sort':
+        await this.maxSort(bars, A, N)
+        break
       case 'Merge Sort':
         await this.mergeSort(bars, A, N)
         break
@@ -588,6 +591,49 @@ export default class SortingVisualizer extends Component {
 
         if (isSorted) break
       }
+    }
+  }
+
+  maxSort = async (bars, A, N) => {
+    for (let i = N - 1; i >= 0; i--) {
+      let max = i
+
+      this.updateBar(bars, A[i], i, PURPLE, N)
+      await timeout(N)
+      
+      for (let j = i - 1; j >= 0; j--) {
+        this.updateBar(bars, A[j], j, RED, N)
+        await timeout(N)
+
+        if (A[j] > A[max]) {
+          if (i === max) {
+            this.updateBar(bars, A[i], i, LIGHT_BLUE, N)            
+          } else {
+            this.updateBar(bars, A[max], max, BLUE, N)
+          }
+          this.updateBar(bars, A[j], j, PURPLE, N)
+          max = j
+        } else {
+          this.updateBar(bars, A[j], j, BLUE, N)
+        }
+        await timeout(N)
+      }
+
+      if (i === max) {
+        this.updateBar(bars, A[i], i, BLUE, N)
+      } else {
+        const temp = A[i]
+        A[i] = A[max]
+        A[max] = temp
+
+        this.updateBar(bars, A[i], i, PURPLE, N)
+        this.updateBar(bars, A[max], max, LIGHT_BLUE, N)
+        await timeout(N)
+
+        this.updateBar(bars, A[i], i, BLUE, N)
+        this.updateBar(bars, A[max], max, BLUE, N)
+      }
+      await timeout(N)
     }
   }
 
