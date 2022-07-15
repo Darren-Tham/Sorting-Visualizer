@@ -9,6 +9,7 @@ export default function TextContainer(props) {
         <option>Bogo Sort</option>
         <option>Bubble Sort</option>
         <option>Cocktail Sort</option>
+        <option>Comb Sort</option>
         <option>Double Selection Sort</option>
         <option>Gnome Sort</option>
         <option>Heap Sort</option>

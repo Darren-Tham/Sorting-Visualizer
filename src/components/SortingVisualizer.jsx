@@ -106,6 +106,9 @@ export default class SortingVisualizer extends Component {
       case 'Cocktail Sort':
         await this.cocktailSort(bars, A, N)
         break
+      case 'Comb Sort':
+        await this.combSort(bars, A, N)
+        break
       case 'Double Selection Sort':
         await this.doubleSelectionSort(bars, A, N)
         break
@@ -352,6 +355,41 @@ export default class SortingVisualizer extends Component {
       }
 
       if (startSorted || endSorted) break
+    }
+  }
+
+  combSort = async (bars, A, N) => {
+    let gap = N
+    let shrink = 1.3
+    let isSorted = false
+
+    while (!isSorted) {
+      isSorted = true
+      gap = Math.floor(gap / shrink)
+      if (gap < 1) {
+        gap = 1
+      }
+
+      for (let i = 0; i < N - gap; i++) {
+        this.updateBar(bars, A[i], i, RED, N)
+        this.updateBar(bars, A[i + gap], i + gap, RED, N)
+        await timeout(N)
+
+        if (A[i] > A[i + gap]) {
+          const temp = A[i]
+          A[i] = A[i + gap]
+          A[i + gap] = temp
+          isSorted = false
+
+          this.updateBar(bars, A[i], i, RED, N)
+          this.updateBar(bars, A[i + gap], i + gap, RED, N)
+          await timeout(N)          
+        }
+
+        this.updateBar(bars, A[i], i, BLUE, N)
+        this.updateBar(bars, A[i + gap], i + gap, BLUE, N)
+        await timeout(N)
+      }
     }
   }
 
